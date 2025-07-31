@@ -104,20 +104,20 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
   // Get category icon
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'Comida': return <Utensils className="w-5 h-5" />;
-      case 'Super Mercado': return <ShoppingCart className="w-5 h-5" />;
-      case 'Delivery': return <Truck className="w-5 h-5" />;
-      default: return <DollarSign className="w-5 h-5" />;
+      case 'Comida': return <Utensils className="w-5 h-5 text-orange-600" />;
+      case 'Super Mercado': return <ShoppingCart className="w-5 h-5 text-green-600" />;
+      case 'Delivery': return <Truck className="w-5 h-5 text-blue-600" />;
+      default: return <DollarSign className="w-5 h-5 text-gray-600" />;
     }
   };
 
   // Get payment method icon
   const getPaymentIcon = (method: string) => {
     switch (method) {
-      case 'Debito': return <CreditCard className="w-5 h-5" />;
-      case 'Credito': return <Gem className="w-5 h-5" />;
-      case 'Efectivo': return <Banknote className="w-5 h-5" />;
-      default: return <DollarSign className="w-5 h-5" />;
+      case 'Debito': return <CreditCard className="w-5 h-5 text-blue-700" />;
+      case 'Credito': return <Gem className="w-5 h-5 text-purple-600" />;
+      case 'Efectivo': return <Banknote className="w-5 h-5 text-green-700" />;
+      default: return <DollarSign className="w-5 h-5 text-gray-600" />;
     }
   };
 
