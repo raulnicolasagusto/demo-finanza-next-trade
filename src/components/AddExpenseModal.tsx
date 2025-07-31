@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -24,17 +25,50 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
     category: categories[0],
     paymentMethod: paymentMethods[0]
   });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.name.trim()) {
-      onAdd(formData);
-      setFormData({
-        name: '',
-        category: categories[0],
-        paymentMethod: paymentMethods[0]
+    
+    if (!formData.name.trim()) {
+      toast.error('El nombre del gasto es requerido');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/expenses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          expense_name: formData.name,
+          expense_category: formData.category,
+          payment_method: formData.paymentMethod
+        })
       });
-      onClose();
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success('¡Gasto agregado exitosamente!');
+        onAdd(formData); // Actualizar la UI local
+        setFormData({
+          name: '',
+          category: categories[0],
+          paymentMethod: paymentMethods[0]
+        });
+        onClose();
+      } else {
+        toast.error(result.message || 'Error al agregar el gasto');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error de conexión. Intenta nuevamente.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -130,9 +164,10 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              disabled={isLoading}
+              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              Agregar
+              {isLoading ? 'Agregando...' : 'Agregar'}
             </button>
           </div>
         </form>

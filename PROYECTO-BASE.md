@@ -8,6 +8,8 @@
 - **TypeScript**: ^5 (strict mode habilitado)
 - **Tailwind CSS**: ^4
 - **Clerk Auth**: ^6.28.0
+- **MongoDB**: Base de datos NoSQL
+- **Mongoose**: ^8.x ODM para MongoDB
 - **Node.js**: Compatible con ES2017+
 
 ### **Herramientas de Desarrollo**
@@ -28,6 +30,9 @@ NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
+
+# MongoDB Configuration
+MONGODB_URI=mongodb+srv://raulnicolasagusto:xqHUw4hhhs0uf6EG@cluster-finance-app.zavrbjy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster-finance-app
 ```
 
 ### **Sintaxis Importante Clerk v6**
@@ -46,22 +51,96 @@ export default clerkMiddleware(async (auth, req) => {
 });
 ```
 
+## 🗄️ CONFIGURACIÓN DE BASE DE DATOS (MONGODB)
+
+### **Conexión a MongoDB**
+- **Cluster**: Cluster-finance-app
+- **Usuario**: raulnicolasagusto
+- **Conexión**: Optimizada con cache para desarrollo
+- **ODM**: Mongoose para modelado de datos
+
+### **Estructura de Archivos de Base de Datos**
+```
+src/api/
+├── db/
+│   └── connection.ts          # Conexión optimizada a MongoDB
+└── models/
+    ├── index.ts               # Exportaciones centralizadas
+    ├── user.models.ts         # Modelo de usuarios
+    └── expense.models.ts      # Modelo de gastos
+```
+
+### **Modelos Implementados**
+
+#### **User Model (user.models.ts)**
+```typescript
+interface IUser {
+  user_id: string;        // Clerk user ID (PRIMARY KEY)
+  email: string;          // Email único
+  first_name: string;     // Nombre
+  last_name: string;      // Apellido
+  image_perfil?: string;  // URL de imagen de perfil
+  createdAt: Date;        // Timestamp automático
+  updatedAt: Date;        // Timestamp automático
+}
+```
+
+#### **Expense Model (expense.models.ts)**
+```typescript
+interface IExpense {
+  expense_id: string;                                    // ID único del gasto
+  user_id: string;                                      // Clerk user ID
+  expense_name: string;                                 // Nombre del gasto
+  expense_category: 'Comida' | 'Super Mercado' | 'Delivery';  // Categoría
+  payment_method: 'Debito' | 'Credito' | 'Efectivo';   // Método de pago
+  createdAt: Date;                                      // Timestamp automático
+  updatedAt: Date;                                      // Timestamp automático
+}
+```
+
+### **Características de los Modelos**
+- **Índices optimizados** para consultas rápidas
+- **Validaciones automáticas** con Mongoose
+- **Timestamps automáticos** (createdAt/updatedAt)
+- **Tipos TypeScript** para seguridad de tipos
+- **Enums estrictos** para categorías y métodos de pago
+
+### **API de Prueba**
+- **Endpoint**: `/api/test-db`
+- **GET**: Verifica conexión y cuenta documentos
+- **POST**: Crea usuarios de prueba
+- **Uso**: Verificar que MongoDB esté funcionando
+
 ## 🗂️ ESTRUCTURA DE ARCHIVOS
 
 ```
 src/
+├── api/
+│   ├── db/
+│   │   └── connection.ts       # Conexión optimizada a MongoDB
+│   └── models/
+│       ├── index.ts            # Exportaciones centralizadas
+│       ├── user.models.ts      # Modelo de usuarios
+│       └── expense.models.ts   # Modelo de gastos
 ├── app/
 │   ├── layout.tsx              # ClerkProvider + configuración global
 │   ├── page.tsx                # Landing page con redirección inteligente
 │   ├── globals.css             # Estilos globales + Tailwind
+│   ├── api/
+│   │   └── test-db/
+│   │       └── route.ts        # API de prueba para MongoDB
 │   ├── dashboard/
-│   │   └── page.tsx            # Dashboard protegido
+│   │   └── page.tsx            # Dashboard protegido con modal de gastos
 │   ├── sign-in/
 │   │   └── [[...sign-in]]/
 │   │       └── page.tsx        # Página de login de Clerk
 │   └── sign-up/
 │       └── [[...sign-up]]/
 │           └── page.tsx        # Página de registro de Clerk
+├── components/
+│   ├── DashboardLayout.tsx     # Layout del dashboard
+│   ├── Sidebar.tsx             # Sidebar de navegación
+│   └── AddExpenseModal.tsx     # Modal para agregar gastos
 └── middleware.ts               # Protección de rutas
 ```
 
@@ -139,16 +218,21 @@ export const config = {
 - Autenticación completa con Clerk v6
 - Protección de rutas con middleware
 - Landing page responsive
-- Dashboard básico
+- Dashboard básico con modal de gastos
 - Páginas de sign-in/sign-up
 - Configuración de desarrollo con Turbopack
+- **Base de datos MongoDB configurada**
+- **Modelos User y Expense implementados**
+- **Conexión optimizada a MongoDB**
+- **Modal "Agregar Gasto" funcional**
+- **API de prueba para verificar BD**
 
 🔄 **Listo para Expansión:**
-- Funcionalidades financieras específicas
-- Base de datos (Prisma/Supabase)
-- API routes para operaciones CRUD
-- Componentes de UI adicionales
-- Dashboards más complejos
+- API routes para operaciones CRUD completas
+- Integración de gastos con la base de datos
+- Dashboards con datos reales de MongoDB
+- Reportes y análisis financieros
+- Funcionalidades avanzadas de categorización
 
 ## 🚨 REGLAS CRÍTICAS DE DESARROLLO
 
@@ -189,6 +273,6 @@ export const config = {
 
 ---
 
-**Última actualización**: Enero 2025
-**Versión del proyecto**: 0.1.0
-**Estado**: Base funcional completa ✅
+**Última actualización**: Enero 2025 - MongoDB implementado
+**Versión del proyecto**: 0.2.0
+**Estado**: Base funcional completa con BD ✅
