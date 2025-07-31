@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface AddExpenseModalProps {
@@ -125,7 +125,7 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <XMarkIcon className="w-6 h-6" />
+            <X className="w-6 h-6" />
           </button>
         </div>
 

@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { DollarSign } from 'lucide-react';
 
 export default async function Home() {
   const { userId } = await auth();
@@ -42,10 +43,8 @@ export default async function Home() {
       {/* Hero Section */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Controla tus
-            <span className="text-blue-600"> Finanzas </span>
-            de manera inteligente
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+            <DollarSign className="inline w-12 h-12 md:w-16 md:h-16 text-green-600" /> Demo Finanza
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Demo Finanza te ayuda a gestionar tus ingresos, gastos y ahorros de forma

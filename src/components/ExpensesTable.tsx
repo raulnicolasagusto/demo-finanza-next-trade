@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { Search, ChevronLeft, ChevronRight, Trash2, Edit, Utensils, ShoppingCart, Truck, CreditCard, Gem, Banknote, DollarSign } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Expense {
@@ -104,20 +104,20 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
   // Get category icon
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'Comida': return '🍽️';
-      case 'Super Mercado': return '🛒';
-      case 'Delivery': return '🚚';
-      default: return '💰';
+      case 'Comida': return <Utensils className="w-5 h-5" />;
+      case 'Super Mercado': return <ShoppingCart className="w-5 h-5" />;
+      case 'Delivery': return <Truck className="w-5 h-5" />;
+      default: return <DollarSign className="w-5 h-5" />;
     }
   };
 
   // Get payment method icon
   const getPaymentIcon = (method: string) => {
     switch (method) {
-      case 'Debito': return '💳';
-      case 'Credito': return '💎';
-      case 'Efectivo': return '💵';
-      default: return '💰';
+      case 'Debito': return <CreditCard className="w-5 h-5" />;
+      case 'Credito': return <Gem className="w-5 h-5" />;
+      case 'Efectivo': return <Banknote className="w-5 h-5" />;
+      default: return <DollarSign className="w-5 h-5" />;
     }
   };
 
@@ -198,23 +198,23 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
         <div className="flex items-center space-x-4">
           {/* Search */}
           <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
               placeholder="Buscar gastos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
             />
           </div>
           
           {/* Items per page */}
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">Mostrar:</span>
+            <span className="text-sm text-gray-900 font-medium">Mostrar:</span>
             <select
               value={itemsPerPage}
               onChange={(e) => setItemsPerPage(e.target.value === 'all' ? 'all' : Number(e.target.value) as ItemsPerPageOption)}
-              className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
             >
               {ITEMS_PER_PAGE_OPTIONS.map(option => (
                 <option key={option} value={option}>
@@ -266,13 +266,13 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center space-x-2">
-                        <span className="text-lg">{getCategoryIcon(expense.expense_category)}</span>
+                        {getCategoryIcon(expense.expense_category)}
                         <span className="text-gray-700">{expense.expense_category}</span>
                       </div>
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center space-x-2">
-                        <span className="text-lg">{getPaymentIcon(expense.payment_method)}</span>
+                        {getPaymentIcon(expense.payment_method)}
                         <span className="text-gray-700">{expense.payment_method}</span>
                       </div>
                     </td>
@@ -287,10 +287,9 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                           className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Editar gasto"
                         >
-                          <PencilIcon className="h-4 w-4" />
+                          <Edit className="h-4 w-4" />
                         </button>
                         
-                        {/* Botón Eliminar */}
                         <button
                           onClick={() => handleDeleteExpense(expense.expense_id, expense.expense_name)}
                           disabled={deletingExpenseId === expense.expense_id}
@@ -300,7 +299,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                           {deletingExpenseId === expense.expense_id ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent"></div>
                           ) : (
-                            <TrashIcon className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                           )}
                         </button>
                       </div>
@@ -314,7 +313,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
           {/* Pagination */}
           {itemsPerPage !== 'all' && totalPages > 1 && (
             <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-900 font-medium">
                 Mostrando {((currentPage - 1) * (itemsPerPage as number)) + 1} a {Math.min(currentPage * (itemsPerPage as number), totalItems)} de {totalItems} gastos
               </div>
               
@@ -324,7 +323,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                   disabled={currentPage === 1}
                   className="p-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
                 >
-                  <ChevronLeftIcon className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4" />
                 </button>
                 
                 <div className="flex items-center space-x-1">
@@ -335,7 +334,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                       className={`px-3 py-1 rounded-lg text-sm transition-colors ${
                         currentPage === page
                           ? 'bg-blue-600 text-white'
-                          : 'text-gray-600 hover:bg-gray-100'
+                          : 'text-gray-900 hover:bg-gray-100 font-medium'
                       }`}
                     >
                       {page}
@@ -348,7 +347,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                   disabled={currentPage === totalPages}
                   className="p-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
                 >
-                  <ChevronRightIcon className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
             </div>

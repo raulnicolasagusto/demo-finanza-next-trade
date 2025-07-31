@@ -6,6 +6,7 @@ import { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import AddExpenseModal from '@/components/AddExpenseModal';
 import ExpensesTable from '@/components/ExpensesTable';
+import { CreditCard } from 'lucide-react';
 
 interface ExpenseData {
   name: string;
@@ -54,7 +55,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-500">Total spending</span>
             <div className="w-6 h-6 bg-gray-800 rounded flex items-center justify-center">
-              <span className="text-xs font-bold text-white">💳</span>
+              <CreditCard className="w-4 h-4 text-white" />
             </div>
           </div>
           <div className="text-2xl font-bold text-gray-900">$250.80</div>
@@ -85,7 +86,7 @@ export default function Dashboard() {
               <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
               <span className="text-sm text-gray-600">Expenses</span>
             </div>
-            <select className="text-sm border border-gray-300 rounded px-2 py-1">
+            <select className="text-sm border border-gray-300 rounded px-2 py-1 text-gray-900 bg-white">
               <option>Last 7 days</option>
               <option>Last 30 days</option>
               <option>Last 3 months</option>

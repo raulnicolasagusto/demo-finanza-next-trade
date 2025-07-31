@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronLeftIcon, ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline';
+import { UserButton } from '@clerk/nextjs';
+import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -17,7 +18,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
     {
       name: 'Dashboard',
       href: '/dashboard',
-      icon: HomeIcon,
+      icon: Home,
       current: pathname === '/dashboard'
     }
   ];
@@ -41,13 +42,9 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-1 rounded-md hover:bg-gray-100 transition-colors"
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
-          {isCollapsed ? (
-            <ChevronRightIcon className="w-5 h-5 text-gray-500" />
-          ) : (
-            <ChevronLeftIcon className="w-5 h-5 text-gray-500" />
-          )}
+          {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
         </button>
       </div>
 
