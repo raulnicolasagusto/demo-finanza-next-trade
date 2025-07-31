@@ -16,12 +16,10 @@ const ExpenseSchema: Schema = new Schema(
       type: String,
       required: true,
       unique: true,
-      index: true,
     },
     user_id: {
       type: String,
       required: true,
-      index: true,
     },
     expense_name: {
       type: String,

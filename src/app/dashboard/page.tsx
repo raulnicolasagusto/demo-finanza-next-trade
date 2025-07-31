@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import AddExpenseModal from '@/components/AddExpenseModal';
+import ExpensesTable from '@/components/ExpensesTable';
 
 interface ExpenseData {
   name: string;
@@ -16,6 +17,7 @@ export default function Dashboard() {
   const { userId, isLoaded } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expenses, setExpenses] = useState<ExpenseData[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   if (!isLoaded) {
     return <div>Loading...</div>;
@@ -27,6 +29,7 @@ export default function Dashboard() {
 
   const handleAddExpense = (expense: ExpenseData) => {
     setExpenses([...expenses, expense]);
+    setRefreshTrigger(prev => prev + 1); // Trigger refresh of ExpensesTable
     console.log('Nuevo gasto agregado:', expense);
   };
 
@@ -103,30 +106,8 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* Recent Transactions */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Transaction</h2>
-          <button className="text-sm text-blue-600 hover:text-blue-700">View All →</button>
-        </div>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <span className="text-blue-600 font-semibold">📱</span>
-              </div>
-              <div>
-                <p className="font-medium text-gray-900">iPhone 13 Pro MAX</p>
-                <p className="text-sm text-gray-500">Mobile</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="font-semibold text-gray-900">€420.84</p>
-              <p className="text-sm text-gray-500">14 Apr 2022</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Expenses Table */}
+      <ExpensesTable refreshTrigger={refreshTrigger} />
 
       {/* Add Expense Modal */}
       <AddExpenseModal
