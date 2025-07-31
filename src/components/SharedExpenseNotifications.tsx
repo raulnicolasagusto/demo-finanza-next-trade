@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { Bell, Check, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface Invitation {
   _id: string;
@@ -47,6 +48,10 @@ export default function SharedExpenseNotifications({ onExpenseUpdate }: SharedEx
 
   const handleInvitation = async (invitationId: string, action: 'accept' | 'decline') => {
     setLoading(true);
+    
+    // Encontrar la invitación para obtener los datos del gasto
+    const invitation = invitations.find(inv => inv.invitation_id === invitationId);
+    
     try {
       const response = await fetch(`/api/shared-expenses/invitations/${invitationId}`, {
         method: 'PATCH',
@@ -60,19 +65,24 @@ export default function SharedExpenseNotifications({ onExpenseUpdate }: SharedEx
         // Remover la invitación de la lista
         setInvitations(prev => prev.filter(inv => inv.invitation_id !== invitationId));
         
-        // Mostrar mensaje de éxito
-        alert(action === 'accept' ? 'Gasto aceptado exitosamente' : 'Invitación rechazada');
-        
-        // NUEVA FUNCIONALIDAD: Actualizar la tabla de gastos
-        if (action === 'accept' && onExpenseUpdate) {
-          onExpenseUpdate();
+        // Mostrar notificación toast personalizada
+        if (invitation) {
+          if (action === 'accept') {
+            toast.success(`Se aceptó compartir el gasto "${invitation.expense_data.expense_name}" del usuario ${invitation.sender_email}`);
+            // Actualizar la tabla de gastos
+            if (onExpenseUpdate) {
+              onExpenseUpdate();
+            }
+          } else {
+            toast.error(`Se rechazó compartir el gasto "${invitation.expense_data.expense_name}" del usuario ${invitation.sender_email}`);
+          }
         }
       } else {
-        alert('Error procesando la invitación');
+        toast.error('Error procesando la invitación');
       }
     } catch (error) {
       console.error('Error handling invitation:', error);
-      alert('Error procesando la invitación');
+      toast.error('Error procesando la invitación');
     } finally {
       setLoading(false);
     }
