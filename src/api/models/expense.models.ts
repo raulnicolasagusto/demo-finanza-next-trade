@@ -4,6 +4,7 @@ export interface IExpense extends Document {
   expense_id: string;
   user_id: string; // Clerk user ID
   expense_name: string;
+  expense_amount: string; // Nuevo campo para el monto del gasto
   expense_category: 'Comida' | 'Super Mercado' | 'Delivery';
   payment_method: 'Debito' | 'Credito' | 'Efectivo';
   createdAt: Date;
@@ -22,6 +23,11 @@ const ExpenseSchema: Schema = new Schema(
       required: true,
     },
     expense_name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    expense_amount: {
       type: String,
       required: true,
       trim: true,
@@ -47,7 +53,11 @@ ExpenseSchema.index({ expense_id: 1 });
 ExpenseSchema.index({ user_id: 1 });
 ExpenseSchema.index({ user_id: 1, createdAt: -1 }); // For user's expenses sorted by date
 
-// Prevent model re-compilation during development
-const Expense = mongoose.models.Expense || mongoose.model<IExpense>('Expense', ExpenseSchema);
+// FORZAR RECREACIÓN DEL MODELO
+if (mongoose.models.Expense) {
+  delete mongoose.models.Expense;
+}
+
+const Expense = mongoose.model<IExpense>('Expense', ExpenseSchema);
 
 export default Expense;

@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
 
 interface Expense {
   expense_id: string;
   expense_name: string;
+  expense_amount: string;
   expense_category: 'Comida' | 'Super Mercado' | 'Delivery';
   payment_method: 'Debito' | 'Credito' | 'Efectivo';
   createdAt: string;
@@ -25,6 +27,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState<ItemsPerPageOption>(5);
+  const [deletingExpenseId, setDeletingExpenseId] = useState<string | null>(null);
 
   // Fetch expenses from API
   const fetchExpenses = async () => {
@@ -62,6 +65,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
       const date = new Date(expense.createdAt).toLocaleDateString('es-ES');
       return (
         expense.expense_name.toLowerCase().includes(searchLower) ||
+        (expense.expense_amount || '').toLowerCase().includes(searchLower) ||
         expense.expense_category.toLowerCase().includes(searchLower) ||
         expense.payment_method.toLowerCase().includes(searchLower) ||
         date.includes(searchLower)
@@ -115,6 +119,46 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
       case 'Efectivo': return '💵';
       default: return '💰';
     }
+  };
+
+  // Función para eliminar gasto
+  const handleDeleteExpense = async (expense_id: string, expense_name: string) => {
+    const confirmDelete = window.confirm(
+      `¿Estás seguro de que deseas eliminar el gasto "${expense_name}"?\n\nEsta acción no se puede deshacer.`
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    setDeletingExpenseId(expense_id);
+
+    try {
+      const response = await fetch(`/api/expenses?expense_id=${expense_id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success('Gasto eliminado exitosamente');
+        // Actualizar la lista de gastos
+        fetchExpenses();
+      } else {
+        toast.error(result.message || 'Error al eliminar el gasto');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error de conexión. Intenta nuevamente.');
+    } finally {
+      setDeletingExpenseId(null);
+    }
+  };
+
+  // Función para editar gasto (placeholder)
+  const handleEditExpense = (expense_id: string) => {
+    toast.info('Función de editar próximamente disponible');
+    console.log('Editar gasto:', expense_id);
   };
 
   if (loading) {
@@ -199,14 +243,16 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto min-h-[400px]">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Nombre del Gasto</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">Monto</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Categoría</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Método de Pago</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Fecha</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -214,6 +260,9 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                   <tr key={expense.expense_id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td className="py-4 px-4">
                       <div className="font-medium text-gray-900">{expense.expense_name}</div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="font-semibold text-green-600">${expense.expense_amount}</div>
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center space-x-2">
@@ -229,6 +278,32 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                     </td>
                     <td className="py-4 px-4">
                       <span className="text-gray-600 text-sm">{formatDate(expense.createdAt)}</span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center space-x-2">
+                        {/* Botón Editar */}
+                        <button
+                          onClick={() => handleEditExpense(expense.expense_id)}
+                          className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Editar gasto"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        
+                        {/* Botón Eliminar */}
+                        <button
+                          onClick={() => handleDeleteExpense(expense.expense_id, expense.expense_name)}
+                          disabled={deletingExpenseId === expense.expense_id}
+                          className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Eliminar gasto"
+                        >
+                          {deletingExpenseId === expense.expense_id ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent"></div>
+                          ) : (
+                            <TrashIcon className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

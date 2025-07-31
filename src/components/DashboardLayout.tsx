@@ -30,7 +30,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     avatarBox: 'w-8 h-8'
                   }
                 }}
-                afterSignOutUrl="/"
+                afterSignOutUrl="/sign-in"
+                showName={true}
+                userProfileMode="navigation"
+                userProfileUrl="/user-profile"
               />
             </div>
           </div>

@@ -12,6 +12,7 @@ interface AddExpenseModalProps {
 
 interface ExpenseData {
   name: string;
+  amount: string;
   category: string;
   paymentMethod: string;
 }
@@ -22,16 +23,44 @@ const paymentMethods = ['Debito', 'Credito', 'Efectivo'];
 export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps) {
   const [formData, setFormData] = useState<ExpenseData>({
     name: '',
+    amount: '',
     category: categories[0],
     paymentMethod: paymentMethods[0]
   });
   const [isLoading, setIsLoading] = useState(false);
+
+  // Función para formatear el monto con puntos
+  const formatAmount = (value: string) => {
+    // Remover todo excepto números y puntos
+    const numericValue = value.replace(/[^\d.]/g, '');
+    
+    // Dividir en parte entera y decimal
+    const parts = numericValue.split('.');
+    
+    // Limitar a máximo 2 decimales
+    if (parts.length > 1) {
+      parts[1] = parts[1].slice(0, 2);
+    }
+    
+    // Reunir las partes
+    return parts.length > 1 ? parts[0] + '.' + parts[1] : parts[0];
+  };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedValue = formatAmount(e.target.value);
+    setFormData({ ...formData, amount: formattedValue });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name.trim()) {
       toast.error('El nombre del gasto es requerido');
+      return;
+    }
+
+    if (!formData.amount.trim()) {
+      toast.error('El monto del gasto es requerido');
       return;
     }
 
@@ -45,6 +74,7 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
         },
         body: JSON.stringify({
           expense_name: formData.name,
+          expense_amount: formData.amount,
           expense_category: formData.category,
           payment_method: formData.paymentMethod
         })
@@ -57,6 +87,7 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
         onAdd(formData); // Actualizar la UI local
         setFormData({
           name: '',
+          amount: '',
           category: categories[0],
           paymentMethod: paymentMethods[0]
         });
@@ -75,6 +106,7 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
   const handleCancel = () => {
     setFormData({
       name: '',
+      amount: '',
       category: categories[0],
       paymentMethod: paymentMethods[0]
     });
@@ -109,10 +141,30 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500"
               placeholder="Ingresa el nombre del gasto"
               required
             />
+          </div>
+
+          {/* Monto del gasto */}
+          <div>
+            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
+              Monto del gasto
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 font-medium">$</span>
+              <input
+                type="text"
+                id="amount"
+                value={formData.amount}
+                onChange={handleAmountChange}
+                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                placeholder="0.00"
+                required
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Usa punto para separar decimales (ej: 123.45)</p>
           </div>
 
           {/* Categoría */}
@@ -124,7 +176,7 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
               id="category"
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
             >
               {categories.map((category) => (
                 <option key={category} value={category}>
@@ -143,7 +195,7 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
               id="paymentMethod"
               value={formData.paymentMethod}
               onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
             >
               {paymentMethods.map((method) => (
                 <option key={method} value={method}>

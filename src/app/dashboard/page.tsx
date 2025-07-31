@@ -9,6 +9,7 @@ import ExpensesTable from '@/components/ExpensesTable';
 
 interface ExpenseData {
   name: string;
+  amount: string;
   category: string;
   paymentMethod: string;
 }
