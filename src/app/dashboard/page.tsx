@@ -1,13 +1,34 @@
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
-import DashboardLayout from '@/components/DashboardLayout';
+'use client';
 
-export default async function Dashboard() {
-  const { userId } = await auth();
+import { useAuth } from '@clerk/nextjs';
+import { redirect } from 'next/navigation';
+import { useState } from 'react';
+import DashboardLayout from '@/components/DashboardLayout';
+import AddExpenseModal from '@/components/AddExpenseModal';
+
+interface ExpenseData {
+  name: string;
+  category: string;
+  paymentMethod: string;
+}
+
+export default function Dashboard() {
+  const { userId, isLoaded } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [expenses, setExpenses] = useState<ExpenseData[]>([]);
+
+  if (!isLoaded) {
+    return <div>Loading...</div>;
+  }
 
   if (!userId) {
     redirect('/sign-in');
   }
+
+  const handleAddExpense = (expense: ExpenseData) => {
+    setExpenses([...expenses, expense]);
+    console.log('Nuevo gasto agregado:', expense);
+  };
 
   return (
     <DashboardLayout>
@@ -72,6 +93,16 @@ export default async function Dashboard() {
         </div>
       </div>
 
+      {/* Add Expense Button */}
+      <div className="mb-8">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm"
+        >
+          Agregar Gasto
+        </button>
+      </div>
+
       {/* Recent Transactions */}
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <div className="flex items-center justify-between mb-6">
@@ -96,6 +127,13 @@ export default async function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Add Expense Modal */}
+      <AddExpenseModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAdd={handleAddExpense}
+      />
     </DashboardLayout>
   );
 }
