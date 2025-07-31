@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -147,8 +148,20 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div  className="fixed inset-0  bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" 
+        initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          >
+       <motion.div 
+            className="bg-white rounded-lg p-6 w-full max-w-md mx-4"initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-900">Agregar nuevo gasto</h2>
@@ -250,9 +263,13 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
     </span>
   </label>
 </div>
-
+<AnimatePresence>
 {isShared && (
-  <div className="mb-4">
+  <motion.div  className="mb-4"initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
     <label className="block text-sm font-medium text-gray-700 mb-2">
       Email del destinatario
     </label>
@@ -264,9 +281,9 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
       placeholder="ejemplo@email.com"
       required={isShared}
     />
-  </div>
-)}
-
+    </motion.div>
+  )}
+</AnimatePresence>
           {/* Buttons */}
           <div className="flex space-x-3 pt-4">
             <button
@@ -282,10 +299,12 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
               className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Agregando...' : 'Agregar'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
