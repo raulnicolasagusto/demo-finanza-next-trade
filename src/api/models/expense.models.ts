@@ -4,9 +4,14 @@ export interface IExpense extends Document {
   expense_id: string;
   user_id: string; // Clerk user ID
   expense_name: string;
-  expense_amount: string; // Nuevo campo para el monto del gasto
+  expense_amount: string;
   expense_category: 'Comida' | 'Super Mercado' | 'Delivery';
   payment_method: 'Debito' | 'Credito' | 'Efectivo';
+  // Nuevos campos para gastos compartidos
+  is_shared: boolean;
+  shared_with_user_id?: string; // ID del usuario con quien se comparte
+  shared_with_email?: string; // Email del usuario con quien se comparte
+  original_creator_id?: string; // ID del creador original (para gastos aceptados)
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,9 +47,25 @@ const ExpenseSchema: Schema = new Schema(
       required: true,
       enum: ['Debito', 'Credito', 'Efectivo'],
     },
+    // Nuevos campos para gastos compartidos
+    is_shared: {
+      type: Boolean,
+      default: false,
+    },
+    shared_with_user_id: {
+      type: String,
+    },
+    shared_with_email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    original_creator_id: {
+      type: String,
+    },
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt
+    timestamps: true,
   }
 );
 
@@ -53,7 +74,7 @@ ExpenseSchema.index({ expense_id: 1 });
 ExpenseSchema.index({ user_id: 1 });
 ExpenseSchema.index({ user_id: 1, createdAt: -1 }); // For user's expenses sorted by date
 
-// FORZAR RECREACIÓN DEL MODELO
+// Verificar si el modelo ya existe para evitar errores de re-compilación
 if (mongoose.models.Expense) {
   delete mongoose.models.Expense;
 }

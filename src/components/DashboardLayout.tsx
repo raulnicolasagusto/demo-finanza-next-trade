@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { UserButton } from '@clerk/nextjs';
 import Sidebar from './Sidebar';
+import SharedExpenseNotifications from './SharedExpenseNotifications';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+  onExpenseUpdate?: () => void;
 }
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, onExpenseUpdate }: DashboardLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
@@ -23,6 +25,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
             <div className="flex items-center space-x-4">
+              <SharedExpenseNotifications onExpenseUpdate={onExpenseUpdate} />
               <span className="text-sm text-gray-600">Bienvenido</span>
               <UserButton 
                 appearance={{

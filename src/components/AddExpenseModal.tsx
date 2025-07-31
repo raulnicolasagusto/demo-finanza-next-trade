@@ -20,6 +20,8 @@ interface ExpenseData {
 const categories = ['Comida', 'Super Mercado', 'Delivery'];
 const paymentMethods = ['Debito', 'Credito', 'Efectivo'];
 
+
+
 export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps) {
   const [formData, setFormData] = useState<ExpenseData>({
     name: '',
@@ -28,6 +30,9 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
     paymentMethod: paymentMethods[0]
   });
   const [isLoading, setIsLoading] = useState(false);
+  // Estados para el formulario de compartir gasto
+  const [isShared, setIsShared] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState('');
 
   // Función para formatear el monto con puntos
   const formatAmount = (value: string) => {
@@ -51,57 +56,83 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
     setFormData({ ...formData, amount: formattedValue });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  if (!formData.name.trim()) {
+    toast.error('El nombre del gasto es requerido');
+    return;
+  }
+
+  if (!formData.amount.trim()) {
+    toast.error('El monto del gasto es requerido');
+    return;
+  }
+
+  // Validación para gastos compartidos
+  if (isShared && !recipientEmail.trim()) {
+    toast.error('El email del destinatario es requerido para gastos compartidos');
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    // Decidir endpoint y datos según si es compartido o no
+    const endpoint = isShared ? '/api/shared-expenses/invite' : '/api/expenses';
     
-    if (!formData.name.trim()) {
-      toast.error('El nombre del gasto es requerido');
-      return;
-    }
-
-    if (!formData.amount.trim()) {
-      toast.error('El monto del gasto es requerido');
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('/api/expenses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          expense_name: formData.name,
-          expense_amount: formData.amount,
-          expense_category: formData.category,
-          payment_method: formData.paymentMethod
-        })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast.success('¡Gasto agregado exitosamente!');
-        onAdd(formData); // Actualizar la UI local
-        setFormData({
-          name: '',
-          amount: '',
-          category: categories[0],
-          paymentMethod: paymentMethods[0]
-        });
-        onClose();
-      } else {
-        toast.error(result.message || 'Error al agregar el gasto');
+    const requestBody = isShared ? {
+      recipient_email: recipientEmail,
+      expense_data: {
+        expense_name: formData.name,
+        expense_amount: formData.amount,
+        expense_category: formData.category,
+        payment_method: formData.paymentMethod
       }
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Error de conexión. Intenta nuevamente.');
-    } finally {
-      setIsLoading(false);
+    } : {
+      expense_name: formData.name,
+      expense_amount: formData.amount,
+      expense_category: formData.category,
+      payment_method: formData.paymentMethod,
+      is_shared: false
+    };
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      const successMessage = isShared 
+        ? '¡Invitación de gasto compartido enviada exitosamente!' 
+        : '¡Gasto agregado exitosamente!';
+      toast.success(successMessage);
+      
+      onAdd(formData); // Actualizar la UI local
+      setFormData({
+        name: '',
+        amount: '',
+        category: categories[0],
+        paymentMethod: paymentMethods[0]
+      });
+      setIsShared(false);
+      setRecipientEmail('');
+      onClose();
+    } else {
+      toast.error(result.message || 'Error al procesar el gasto');
     }
-  };
+  } catch (error) {
+    console.error('Error:', error);
+    toast.error('Error de conexión. Intenta nuevamente.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleCancel = () => {
     setFormData({
@@ -204,6 +235,37 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
               ))}
             </select>
           </div>
+
+          {/* Compartir este gasto */}
+<div className="mb-4">
+  <label className="flex items-center">
+    <input
+      type="checkbox"
+      checked={isShared}
+      onChange={(e) => setIsShared(e.target.checked)}
+      className="mr-2"
+    />
+    <span className="text-sm font-medium text-gray-700">
+      Compartir este gasto
+    </span>
+  </label>
+</div>
+
+{isShared && (
+  <div className="mb-4">
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      Email del destinatario
+    </label>
+    <input
+      type="email"
+      value={recipientEmail}
+      onChange={(e) => setRecipientEmail(e.target.value)}
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      placeholder="ejemplo@email.com"
+      required={isShared}
+    />
+  </div>
+)}
 
           {/* Buttons */}
           <div className="flex space-x-3 pt-4">

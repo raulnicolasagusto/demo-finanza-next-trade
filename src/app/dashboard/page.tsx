@@ -35,8 +35,13 @@ export default function Dashboard() {
     console.log('Nuevo gasto agregado:', expense);
   };
 
+  // Función para actualizar la tabla cuando se acepta/rechaza un gasto compartido
+  const handleExpenseUpdate = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
   return (
-    <DashboardLayout>
+    <DashboardLayout onExpenseUpdate={handleExpenseUpdate}>
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Total Balance */}

@@ -43,6 +43,7 @@ async function connectDB() {
 }
 
 export default connectDB;
+export { connectDB as connectToDatabase };
 
 // Extend the global object to include mongoose
 declare global {
