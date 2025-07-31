@@ -23,7 +23,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const body = await request.json();
     const { action } = body; // 'accept' o 'decline'
-    const { invitationId } = params;
+    const { invitationId } = await params;
 
     if (!['accept', 'decline'].includes(action)) {
       return NextResponse.json(

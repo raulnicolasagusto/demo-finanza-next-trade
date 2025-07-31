@@ -157,7 +157,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
 
   // Función para editar gasto (placeholder)
   const handleEditExpense = (expense_id: string) => {
-    toast.info('Función de editar próximamente disponible');
+    toast.success('Función de editar próximamente disponible');
     console.log('Editar gasto:', expense_id);
   };
 
@@ -321,9 +321,9 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="p-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  className="p-0.5 border-2 border-black rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4 text-blue-600" />
                 </button>
                 
                 <div className="flex items-center space-x-1">
@@ -345,9 +345,9 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="p-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  className="p-0.5 border-2 border-black rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4 text-blue-600" />
                 </button>
               </div>
             </div>
