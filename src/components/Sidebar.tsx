@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
-import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home, ArrowLeftRight } from 'lucide-react';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -20,6 +20,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       href: '/dashboard',
       icon: Home,
       current: pathname === '/dashboard'
+    },
+    {
+      name: 'Transacciones',
+      href: '/transacciones',
+      icon: ArrowLeftRight,
+      current: pathname === '/transacciones'
     }
   ];
 

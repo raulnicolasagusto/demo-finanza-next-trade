@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
 import Sidebar from './Sidebar';
 import SharedExpenseNotifications from './SharedExpenseNotifications';
@@ -12,6 +13,18 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children, onExpenseUpdate }: DashboardLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const pathname = usePathname();
+  
+  const getPageTitle = () => {
+    switch (pathname) {
+      case '/dashboard':
+        return 'Dashboard';
+      case '/transacciones':
+        return 'Transacciones';
+      default:
+        return 'Dashboard';
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -23,7 +36,7 @@ export default function DashboardLayout({ children, onExpenseUpdate }: Dashboard
         {/* Top Header */}
         <header className="bg-white shadow-sm border-b px-6 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+            <h1 className="text-2xl font-semibold text-gray-900">{getPageTitle()}</h1>
             <div className="flex items-center space-x-4">
               <SharedExpenseNotifications onExpenseUpdate={onExpenseUpdate} />
               <span className="text-sm text-gray-600">Bienvenido</span>
