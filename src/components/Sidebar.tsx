@@ -4,7 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
-import { ChevronLeft, ChevronRight, Home, ArrowLeftRight } from 'lucide-react';
+import { Menu, Home, ArrowLeftRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -30,59 +31,103 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
   ];
 
   return (
-    <div className={`bg-white shadow-lg transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
-      {/* Logo and Toggle */}
-      <div className="flex items-center justify-between p-4 border-b">
-        {!isCollapsed && (
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">M</span>
-            </div>
-            <span className="ml-2 text-lg font-semibold text-gray-900">Maglo.</span>
-          </div>
-        )}
-        {isCollapsed && (
-          <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mx-auto">
-            <span className="text-white font-bold text-sm">M</span>
-          </div>
-        )}
+    <motion.div 
+      className="bg-white shadow-lg h-full flex flex-col"
+      initial={false}
+      animate={{ width: isCollapsed ? 64 : 256 }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+    >
+      {/* Header with Menu Toggle */}
+      <div className="flex items-center justify-center p-4 border-b">
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
-          {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+          <Menu className="w-5 h-5 text-gray-600" />
         </button>
       </div>
 
+      {/* Logo */}
+      <div className="flex items-center justify-center p-4">
+        <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
+          <span className="text-white font-bold text-sm">P</span>
+        </div>
+        <AnimatePresence>
+          {!isCollapsed && (
+            <motion.span 
+              className="ml-2 text-lg font-semibold text-gray-900"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.2, delay: 0.1 }}
+            >
+              Personal Capital
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </div>
+
       {/* Navigation */}
-      <nav className="mt-4 px-2">
-        <ul className="space-y-1">
+      <nav className="flex-1 px-2 mt-8">
+        <ul className={`${isCollapsed ? 'space-y-0.1' : 'grid grid-cols-2'}`}>
           {navigation.map((item) => {
             const Icon = item.icon;
             return (
               <li key={item.name}>
                 <Link
                   href={item.href}
-                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={`group flex flex-col items-center justify-center p-3 text-sm font-medium rounded-md transition-colors ${
                     item.current
-                      ? 'bg-green-100 text-green-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'text-indigo-700'
+                      : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  <Icon
-                    className={`flex-shrink-0 w-5 h-5 ${
-                      item.current ? 'text-green-500' : 'text-gray-400 group-hover:text-gray-500'
-                    }`}
-                  />
-                  {!isCollapsed && (
-                    <span className="ml-3">{item.name}</span>
-                  )}
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-full mb-2 ${
+                    item.current ? 'bg-indigo-100' : 'bg-gray-100'
+                  }`}>
+                    <Icon
+                      className={`w-5 h-5 ${
+                        item.current ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500'
+                      }`}
+                    />
+                  </div>
+                  <AnimatePresence>
+                    {!isCollapsed && (
+                      <motion.span 
+                        className="text-xs text-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {item.name}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </Link>
               </li>
             );
           })}
         </ul>
       </nav>
-    </div>
+
+      {/* Bottom section for premium card */}
+      <div className="p-4 mt-auto">
+        {!isCollapsed && (
+          <motion.div 
+            className="bg-indigo-500 rounded-xl p-4 text-white"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <h3 className="font-semibold mb-1">Get a premium card</h3>
+            <p className="text-xs text-indigo-100 mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit</p>
+            <button className="bg-white text-indigo-600 text-sm font-medium px-4 py-2 rounded-lg">
+              Get Now
+            </button>
+          </motion.div>
+        )}
+      </div>
+    </motion.div>
   );
 }
