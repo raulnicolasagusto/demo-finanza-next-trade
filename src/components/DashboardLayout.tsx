@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
 import Sidebar from './Sidebar';
@@ -14,6 +14,20 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children, onExpenseUpdate }: DashboardLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const pathname = usePathname();
+  
+  // Cargar el estado del sidebar desde localStorage al montar el componente
+  useEffect(() => {
+    const savedState = localStorage.getItem('sidebarCollapsed');
+    if (savedState !== null) {
+      setSidebarCollapsed(JSON.parse(savedState));
+    }
+  }, []);
+  
+  // Función para manejar el cambio de estado del sidebar
+  const handleSidebarToggle = (collapsed: boolean) => {
+    setSidebarCollapsed(collapsed);
+    localStorage.setItem('sidebarCollapsed', JSON.stringify(collapsed));
+  };
   
   const getPageTitle = () => {
     switch (pathname) {
@@ -29,7 +43,11 @@ export default function DashboardLayout({ children, onExpenseUpdate }: Dashboard
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <Sidebar isCollapsed={sidebarCollapsed} setIsCollapsed={setSidebarCollapsed} />
+      <Sidebar 
+        key="persistent-sidebar" 
+        isCollapsed={sidebarCollapsed} 
+        setIsCollapsed={handleSidebarToggle} 
+      />
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">

@@ -35,7 +35,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       className="bg-white shadow-lg h-full flex flex-col"
       initial={false}
       animate={{ width: isCollapsed ? 64 : 256 }}
-      transition={{ duration: 0.5, ease: "easeInOut" }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
     >
       {/* Header with Menu Toggle */}
       <div className="flex items-center justify-center p-4 border-b">
@@ -52,24 +52,21 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
         <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
           <span className="text-white font-bold text-sm">P</span>
         </div>
-        <AnimatePresence>
-          {!isCollapsed && (
-            <motion.span 
-              className="ml-2 text-lg font-semibold text-gray-900"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.2, delay: 0.1 }}
-            >
-              Personal Capital
-            </motion.span>
-          )}
-        </AnimatePresence>
+        {!isCollapsed && (
+          <motion.span 
+            className="ml-2 text-lg font-semibold text-gray-900"
+            initial={false}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            Personal Capital
+          </motion.span>
+        )}
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-2 mt-8">
-        <ul className={`${isCollapsed ? 'space-y-0.1' : 'grid grid-cols-2'}`}>
+        <ul className={`${isCollapsed ? 'space-y-6' : 'grid grid-cols-2 gap-4'}`}>
           {navigation.map((item) => {
             const Icon = item.icon;
             return (
@@ -91,19 +88,16 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                       }`}
                     />
                   </div>
-                  <AnimatePresence>
-                    {!isCollapsed && (
-                      <motion.span 
-                        className="text-xs text-center"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        {item.name}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
+                  {!isCollapsed && (
+                    <motion.span 
+                      className="text-xs text-center"
+                      initial={false}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {item.name}
+                    </motion.span>
+                  )}
                 </Link>
               </li>
             );
@@ -116,9 +110,9 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
         {!isCollapsed && (
           <motion.div 
             className="bg-indigo-500 rounded-xl p-4 text-white"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
           >
             <h3 className="font-semibold mb-1">Get a premium card</h3>
             <p className="text-xs text-indigo-100 mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit</p>

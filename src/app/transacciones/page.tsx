@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import AddExpenseModal from '@/components/AddExpenseModal';
+import AddIncomeModal from '@/components/AddIncomeModal';
 import ExpensesTable from '@/components/ExpensesTable';
 
 interface ExpenseData {
@@ -14,10 +15,18 @@ interface ExpenseData {
   paymentMethod: string;
 }
 
+interface IncomeData {
+  amount: string;
+  type: string;
+  note: string;
+}
+
 export default function Transacciones() {
   const { userId, isLoaded } = useAuth();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
   const [expenses, setExpenses] = useState<ExpenseData[]>([]);
+  const [incomes, setIncomes] = useState<IncomeData[]>([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   if (!isLoaded) {
@@ -34,19 +43,31 @@ export default function Transacciones() {
     console.log('Nuevo gasto agregado:', expense);
   };
 
+  const handleAddIncome = (income: IncomeData) => {
+    setIncomes([...incomes, income]);
+    setRefreshTrigger(prev => prev + 1);
+    console.log('Nuevo ingreso agregado:', income);
+  };
+
   const handleExpenseUpdate = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
   return (
     <DashboardLayout onExpenseUpdate={handleExpenseUpdate}>
-      {/* Add Expense Button */}
-      <div className="mb-8">
+      {/* Action Buttons */}
+      <div className="mb-8 flex gap-4">
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => setIsExpenseModalOpen(true)}
           className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm"
         >
           Agregar Gasto
+        </button>
+        <button
+          onClick={() => setIsIncomeModalOpen(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm"
+        >
+          Agregar Ingreso
         </button>
       </div>
 
@@ -55,9 +76,16 @@ export default function Transacciones() {
 
       {/* Add Expense Modal */}
       <AddExpenseModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isExpenseModalOpen}
+        onClose={() => setIsExpenseModalOpen(false)}
         onAdd={handleAddExpense}
+      />
+
+      {/* Add Income Modal */}
+      <AddIncomeModal
+        isOpen={isIncomeModalOpen}
+        onClose={() => setIsIncomeModalOpen(false)}
+        onAdd={handleAddIncome}
       />
     </DashboardLayout>
   );

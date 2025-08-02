@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/api/db/connection';
-import { User, Expense } from '@/api/models';
+import { User, Expense, Income } from '@/api/models';
 
 // Test endpoint to verify MongoDB connection and models
 export async function GET(request: NextRequest) {
@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     // Test database connection
     const userCount = await User.countDocuments();
     const expenseCount = await Expense.countDocuments();
+    const incomeCount = await Income.countDocuments();
     
     return NextResponse.json({
       success: true,
@@ -18,6 +19,7 @@ export async function GET(request: NextRequest) {
       data: {
         userCount,
         expenseCount,
+        incomeCount,
         timestamp: new Date().toISOString()
       }
     });
