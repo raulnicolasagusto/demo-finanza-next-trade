@@ -13,6 +13,26 @@ interface Expense {
   createdAt: string;
 }
 
+interface Income {
+  income_id: string;
+  income_amount: string;
+  income_type: 'Sueldo' | 'Honorarios' | 'Ventas' | 'Rentas' | 'Otros Ingresos';
+  income_note: string;
+  createdAt: string;
+}
+
+type Transaction = {
+  id: string;
+  type: 'expense' | 'income';
+  name: string;
+  amount: string;
+  category?: string;
+  paymentMethod?: string;
+  note?: string;
+  createdAt: string;
+  originalData: Expense | Income;
+};
+
 interface ExpensesTableProps {
   refreshTrigger?: number;
 }
@@ -22,12 +42,42 @@ type ItemsPerPageOption = typeof ITEMS_PER_PAGE_OPTIONS[number];
 
 export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [incomes, setIncomes] = useState<Income[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState<ItemsPerPageOption>(5);
-  const [deletingExpenseId, setDeletingExpenseId] = useState<string | null>(null);
+  const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
+
+  // Función para convertir gastos e ingresos a transacciones
+  const combineTransactions = (expenses: Expense[], incomes: Income[]): Transaction[] => {
+    const expenseTransactions: Transaction[] = expenses.map(expense => ({
+      id: expense.expense_id,
+      type: 'expense' as const,
+      name: expense.expense_name,
+      amount: expense.expense_amount,
+      category: expense.expense_category,
+      paymentMethod: expense.payment_method,
+      createdAt: expense.createdAt,
+      originalData: expense
+    }));
+
+    const incomeTransactions: Transaction[] = incomes.map(income => ({
+      id: income.income_id,
+      type: 'income' as const,
+      name: income.income_type,
+      amount: income.income_amount,
+      note: income.income_note,
+      createdAt: income.createdAt,
+      originalData: income
+    }));
+
+    // Combinar y ordenar por fecha (más recientes primero)
+    return [...expenseTransactions, ...incomeTransactions]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  };
 
   // Fetch expenses from API
   const fetchExpenses = async () => {
@@ -51,39 +101,77 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
     }
   };
 
+  // Fetch incomes from API
+  const fetchIncomes = async () => {
+    try {
+      const response = await fetch('/api/incomes');
+      const result = await response.json();
+      
+      if (result.success) {
+        setIncomes(result.data);
+      } else {
+        console.error('Error al cargar los ingresos:', result.message);
+      }
+    } catch (err) {
+      console.error('Error fetching incomes:', err);
+    }
+  };
+
+  // Fetch all data (expenses and incomes)
+  const fetchAllData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      await Promise.all([fetchExpenses(), fetchIncomes()]);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError('Error de conexión al cargar los datos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Initial load and refresh when trigger changes
   useEffect(() => {
-    fetchExpenses();
+    fetchAllData();
   }, [refreshTrigger]);
 
-  // Filter expenses based on search term
-  const filteredExpenses = useMemo(() => {
-    if (!searchTerm.trim()) return expenses;
+  // Combine transactions when expenses or incomes change
+  useEffect(() => {
+    const combinedTransactions = combineTransactions(expenses, incomes);
+    setTransactions(combinedTransactions);
+  }, [expenses, incomes]);
+
+  // Filter transactions based on search term
+  const filteredTransactions = useMemo(() => {
+    if (!searchTerm.trim()) return transactions;
     
     const searchLower = searchTerm.toLowerCase();
-    return expenses.filter(expense => {
-      const date = new Date(expense.createdAt).toLocaleDateString('es-ES');
+    return transactions.filter(transaction => {
+      const date = new Date(transaction.createdAt).toLocaleDateString('es-ES');
       return (
-        expense.expense_name.toLowerCase().includes(searchLower) ||
-        (expense.expense_amount || '').toLowerCase().includes(searchLower) ||
-        expense.expense_category.toLowerCase().includes(searchLower) ||
-        expense.payment_method.toLowerCase().includes(searchLower) ||
+        transaction.name.toLowerCase().includes(searchLower) ||
+        (transaction.amount || '').toLowerCase().includes(searchLower) ||
+        (transaction.category || '').toLowerCase().includes(searchLower) ||
+        (transaction.paymentMethod || '').toLowerCase().includes(searchLower) ||
+        (transaction.note || '').toLowerCase().includes(searchLower) ||
         date.includes(searchLower)
       );
     });
-  }, [expenses, searchTerm]);
+  }, [transactions, searchTerm]);
 
   // Pagination logic
-  const totalItems = filteredExpenses.length;
+  const totalItems = filteredTransactions.length;
   const totalPages = itemsPerPage === 'all' ? 1 : Math.ceil(totalItems / (itemsPerPage as number));
   
-  const paginatedExpenses = useMemo(() => {
-    if (itemsPerPage === 'all') return filteredExpenses;
+  const paginatedTransactions = useMemo(() => {
+    if (itemsPerPage === 'all') return filteredTransactions;
     
     const startIndex = (currentPage - 1) * (itemsPerPage as number);
     const endIndex = startIndex + (itemsPerPage as number);
-    return filteredExpenses.slice(startIndex, endIndex);
-  }, [filteredExpenses, currentPage, itemsPerPage]);
+    return filteredTransactions.slice(startIndex, endIndex);
+  }, [filteredTransactions, currentPage, itemsPerPage]);
 
   // Reset to first page when search term or items per page changes
   useEffect(() => {
@@ -131,7 +219,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
       return;
     }
 
-    setDeletingExpenseId(expense_id);
+    setDeletingTransactionId(expense_id);
 
     try {
       const response = await fetch(`/api/expenses?expense_id=${expense_id}`, {
@@ -143,7 +231,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
       if (result.success) {
         toast.success('Gasto eliminado exitosamente');
         // Actualizar la lista de gastos
-        fetchExpenses();
+        fetchAllData();
       } else {
         toast.error(result.message || 'Error al eliminar el gasto');
       }
@@ -151,14 +239,54 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
       console.error('Error:', error);
       toast.error('Error de conexión. Intenta nuevamente.');
     } finally {
-      setDeletingExpenseId(null);
+      setDeletingTransactionId(null);
+    }
+  };
+
+  // Función para eliminar ingreso
+  const handleDeleteIncome = async (income_id: string, income_type: string) => {
+    const confirmDelete = window.confirm(
+      `¿Estás seguro de que deseas eliminar el ingreso "${income_type}"?\n\nEsta acción no se puede deshacer.`
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    setDeletingTransactionId(income_id);
+
+    try {
+      const response = await fetch(`/api/incomes?income_id=${income_id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success('Ingreso eliminado exitosamente');
+        // Actualizar la lista de datos
+        fetchAllData();
+      } else {
+        toast.error(result.message || 'Error al eliminar el ingreso');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error de conexión. Intenta nuevamente.');
+    } finally {
+      setDeletingTransactionId(null);
     }
   };
 
   // Función para editar gasto (placeholder)
   const handleEditExpense = (expense_id: string) => {
-    toast.success('Función de editar próximamente disponible');
+    toast.success('Función de editar gasto próximamente disponible');
     console.log('Editar gasto:', expense_id);
+  };
+
+  // Función para editar ingreso (placeholder)
+  const handleEditIncome = (income_id: string) => {
+    toast.success('Función de editar ingreso próximamente disponible');
+    console.log('Editar ingreso:', income_id);
   };
 
   if (loading) {
@@ -166,7 +294,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2 text-gray-600">Cargando gastos...</span>
+          <span className="ml-2 text-gray-600">Cargando transacciones...</span>
         </div>
       </div>
     );
@@ -179,7 +307,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
           <div className="text-center">
             <p className="text-red-600 mb-2">❌ {error}</p>
             <button 
-              onClick={fetchExpenses}
+              onClick={fetchAllData}
               className="text-blue-600 hover:text-blue-700 underline"
             >
               Intentar nuevamente
@@ -192,45 +320,42 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">Recent Transactions</h2>
-        <div className="flex items-center space-x-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar gastos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
-            />
-          </div>
-          
-          {/* Items per page */}
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-900 font-medium">Mostrar:</span>
+      {/* Search and Controls */}
+      <div className="mb-6">
+        <div className="flex items-center gap-4 justify-end">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600 whitespace-nowrap">Mostrar:</span>
             <select
               value={itemsPerPage}
-              onChange={(e) => setItemsPerPage(e.target.value === 'all' ? 'all' : Number(e.target.value) as ItemsPerPageOption)}
-              className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+              onChange={(e) => setItemsPerPage(e.target.value as ItemsPerPageOption)}
+              className="border border-gray-300 rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
             >
-              {ITEMS_PER_PAGE_OPTIONS.map(option => (
+              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
                 <option key={option} value={option}>
                   {option === 'all' ? 'Todos' : option}
                 </option>
               ))}
             </select>
           </div>
+          
+          <div className="relative">
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-3 w-3" />
+            <input
+              type="text"
+              placeholder="Buscar..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-7 pr-3 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-400 w-40"
+            />
+          </div>
         </div>
       </div>
 
       {/* Table */}
-      {filteredExpenses.length === 0 ? (
+      {filteredTransactions.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500">
-            {searchTerm ? 'No se encontraron gastos que coincidan con tu búsqueda' : 'No hay gastos registrados aún'}
+            {searchTerm ? 'No se encontraron transacciones que coincidan con tu búsqueda' : 'No hay transacciones registradas aún'}
           </p>
           {searchTerm && (
             <button
@@ -247,7 +372,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Nombre del Gasto</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">Movimiento</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Monto</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Categoría</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Método de Pago</th>
@@ -256,47 +381,65 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                 </tr>
               </thead>
               <tbody>
-                {paginatedExpenses.map((expense) => (
-                  <tr key={expense.expense_id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                {paginatedTransactions.map((transaction) => (
+                  <tr key={transaction.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td className="py-4 px-4">
-                      <div className="font-medium text-gray-900">{expense.expense_name}</div>
+                      <div className="font-medium text-gray-900">{transaction.name}</div>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="font-semibold text-green-600">${expense.expense_amount}</div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center space-x-2">
-                        {getCategoryIcon(expense.expense_category)}
-                        <span className="text-gray-700">{expense.expense_category}</span>
+                      <div className={`font-semibold ${
+                        transaction.type === 'expense' ? 'text-red-600' : 'text-green-600'
+                      }`}>
+                        ${transaction.amount}
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="flex items-center space-x-2">
-                        {getPaymentIcon(expense.payment_method)}
-                        <span className="text-gray-700">{expense.payment_method}</span>
-                      </div>
+                      {transaction.type === 'expense' ? (
+                        <div className="flex items-center space-x-2">
+                          {getCategoryIcon(transaction.category!)}
+                          <span className="text-gray-700">{transaction.category}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-500">-</span>
+                      )}
                     </td>
                     <td className="py-4 px-4">
-                      <span className="text-gray-600 text-sm">{formatDate(expense.createdAt)}</span>
+                      {transaction.type === 'expense' ? (
+                        <div className="flex items-center space-x-2">
+                          {getPaymentIcon(transaction.paymentMethod!)}
+                          <span className="text-gray-700">{transaction.paymentMethod}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-500">-</span>
+                      )}
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className="text-gray-600 text-sm">{formatDate(transaction.createdAt)}</span>
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center space-x-2">
                         {/* Botón Editar */}
                         <button
-                          onClick={() => handleEditExpense(expense.expense_id)}
+                          onClick={() => transaction.type === 'expense' 
+                            ? handleEditExpense(transaction.id) 
+                            : handleEditIncome(transaction.id)
+                          }
                           className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Editar gasto"
+                          title={`Editar ${transaction.type === 'expense' ? 'gasto' : 'ingreso'}`}
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         
                         <button
-                          onClick={() => handleDeleteExpense(expense.expense_id, expense.expense_name)}
-                          disabled={deletingExpenseId === expense.expense_id}
+                          onClick={() => transaction.type === 'expense'
+                            ? handleDeleteExpense(transaction.id, transaction.name)
+                            : handleDeleteIncome(transaction.id, transaction.name)
+                          }
+                          disabled={deletingTransactionId === transaction.id}
                           className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Eliminar gasto"
+                          title={`Eliminar ${transaction.type === 'expense' ? 'gasto' : 'ingreso'}`}
                         >
-                          {deletingExpenseId === expense.expense_id ? (
+                          {deletingTransactionId === transaction.id ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent"></div>
                           ) : (
                             <Trash2 className="h-4 w-4" />
@@ -312,9 +455,9 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
 
           {/* Pagination */}
           {itemsPerPage !== 'all' && totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-              <div className="text-sm text-gray-900 font-medium">
-                Mostrando {((currentPage - 1) * (itemsPerPage as number)) + 1} a {Math.min(currentPage * (itemsPerPage as number), totalItems)} de {totalItems} gastos
+            <div className="flex items-center justify-between mt-6">
+              <div className="text-sm text-gray-600">
+                Mostrando {((currentPage - 1) * (itemsPerPage as number)) + 1} a {Math.min(currentPage * (itemsPerPage as number), totalItems)} de {totalItems} transacciones
               </div>
               
               <div className="flex items-center space-x-2">
@@ -326,15 +469,15 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                   <ChevronLeft className="h-4 w-4 text-blue-600" />
                 </button>
                 
-                <div className="flex items-center space-x-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <div className="flex space-x-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-1 rounded-lg text-sm transition-colors ${
+                      className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                         currentPage === page
                           ? 'bg-blue-600 text-white'
-                          : 'text-gray-900 hover:bg-gray-100 font-medium'
+                          : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >
                       {page}
