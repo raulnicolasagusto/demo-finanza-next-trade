@@ -35,6 +35,14 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
   const [isShared, setIsShared] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState('');
 
+  // Validación para el nombre del gasto
+  const isNameValid = formData.name.length <= 40;
+  
+  // Validación para el monto del gasto (máximo 10 números)
+  const getNumericLength = (value: string) => {
+    return value.replace(/[^\d]/g, '').length;
+  };
+  const isAmountValid = getNumericLength(formData.amount) <= 10;
   // Función para formatear el monto con puntos
   const formatAmount = (value: string) => {
     // Remover todo excepto números y puntos
@@ -185,10 +193,17 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500 ${
+                !isNameValid ? 'border-red-300' : 'border-gray-300'
+              }`}
               placeholder="Ingresa el nombre del gasto"
               required
             />
+            {!isNameValid && (
+              <p className="text-xs text-red-500 mt-1">
+                El nombre no puede exceder los 40 caracteres ({formData.name.length}/40)
+              </p>
+            )}
           </div>
 
           {/* Monto del gasto */}
@@ -203,12 +218,20 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
                 id="amount"
                 value={formData.amount}
                 onChange={handleAmountChange}
-                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                className={`w-full pl-8 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500 ${
+                  !isAmountValid ? 'border-red-300' : 'border-gray-300'
+                }`}
                 placeholder="0.00"
                 required
               />
             </div>
-            <p className="text-xs text-gray-500 mt-1">Usa punto para separar decimales (ej: 123.45)</p>
+            {!isAmountValid ? (
+              <p className="text-xs text-red-500 mt-1">
+                El monto no puede exceder los 10 números ({getNumericLength(formData.amount)}/10)
+              </p>
+            ) : (
+              <p className="text-xs text-gray-500 mt-1">Usa punto para separar decimales (ej: 123.45)</p>
+            )}
           </div>
 
           {/* Categoría */}
@@ -295,16 +318,16 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
             </button>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !isNameValid || !isAmountValid}
               className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Agregando...' : 'Agregar'}
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
   );
 }
