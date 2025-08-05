@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import DashboardLayout from '@/components/DashboardLayout';
 import AddCreditCardModal from '@/components/AddCreditCardModal';
 import { Wallet, CreditCard, Banknote, TrendingUp, TrendingDown, Plus } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface WalletCard {
   id: string;
@@ -24,13 +26,22 @@ interface Transaction {
 }
 
 interface CreditCardData {
-  name: string;
-  type: string;
+  creditCard_id: string;
+  card_name: string;
+  card_type: string;
+  expense_amount_credit: string;
+  payment_amount: string;
+  createdAt: string;
 }
 
 export default function BilleteraPage() {
+  const { isLoaded, userId } = useAuth();
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
-  const [wallets, setWallets] = useState<WalletCard[]>([
+  const [isLoading, setIsLoading] = useState(true);
+  const [creditCards, setCreditCards] = useState<CreditCardData[]>([]);
+  
+  // Wallets estáticos (efectivo, débito, banco)
+  const [staticWallets] = useState<WalletCard[]>([
     {
       id: '1',
       name: 'Efectivo',
@@ -81,17 +92,53 @@ export default function BilleteraPage() {
     }
   ];
 
-  const handleAddCreditCard = (cardData: CreditCardData) => {
-    const newCard: WalletCard = {
-      id: Date.now().toString(),
-      name: cardData.name,
-      balance: 0,
-      type: 'credito',
-      currency: 'ARS',
-      cardType: cardData.type
-    };
-    setWallets([...wallets, newCard]);
+  // Función para obtener tarjetas de crédito desde la API
+  const fetchCreditCards = async () => {
+    if (!userId) return;
+    
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/credit-cards');
+      const result = await response.json();
+      
+      if (result.success) {
+        setCreditCards(result.data);
+      } else {
+        console.error('Error al obtener tarjetas:', result.message);
+        toast.error('Error al cargar las tarjetas de crédito');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error de conexión al cargar tarjetas');
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  // Cargar tarjetas al montar el componente
+  useEffect(() => {
+    if (isLoaded && userId) {
+      fetchCreditCards();
+    }
+  }, [isLoaded, userId]);
+
+  // Manejar nueva tarjeta agregada
+  const handleAddCreditCard = (cardData: CreditCardData) => {
+    setCreditCards(prev => [...prev, cardData]);
+  };
+
+  // Convertir tarjetas de crédito a formato WalletCard para mostrar
+  const creditCardWallets: WalletCard[] = creditCards.map(card => ({
+    id: card.creditCard_id,
+    name: card.card_name,
+    balance: parseFloat(card.payment_amount) - parseFloat(card.expense_amount_credit),
+    type: 'credito' as const,
+    currency: 'ARS',
+    cardType: card.card_type
+  }));
+
+  // Combinar todas las wallets
+  const allWallets = [...staticWallets, ...creditCardWallets];
 
   const getWalletIcon = (type: string) => {
     switch (type) {
@@ -114,108 +161,108 @@ export default function BilleteraPage() {
     }).format(amount);
   };
 
-  const totalBalance = wallets.reduce((sum, wallet) => sum + wallet.balance, 0);
+  const totalBalance = allWallets.reduce((sum, wallet) => sum + wallet.balance, 0);
+
+  // Mostrar loading si aún no se cargaron los datos
+  if (!isLoaded || isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="p-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-6"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="p-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Mi Billetera</h1>
-            <p className="text-gray-600 dark:text-gray-400">Gestiona tus cuentas y saldos</p>
-          </div>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Mi Billetera</h1>
           <button
             onClick={() => setIsAddCardModalOpen(true)}
-            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-300 font-medium"
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
             <Plus className="w-5 h-5" />
-            <span>Agregar tarjeta de Crédito</span>
+            Agregar tarjeta de Crédito
           </button>
         </div>
 
         {/* Balance Total */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-100 text-sm font-medium">Balance Total</p>
-              <p className="text-3xl font-bold">{formatCurrency(totalBalance)}</p>
-            </div>
-            <div className="bg-white/20 p-3 rounded-full">
-              <Wallet className="w-8 h-8" />
-            </div>
-          </div>
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white mb-6">
+          <h2 className="text-lg font-medium mb-2">Balance Total</h2>
+          <p className="text-3xl font-bold">{formatCurrency(totalBalance)}</p>
         </div>
 
-        {/* Tarjetas de Billetera */}
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Mis Cuentas</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {wallets.map((wallet) => (
-              <div
-                key={wallet.id}
-                className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-300"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full text-blue-600 dark:text-blue-400">
-                      {getWalletIcon(wallet.type)}
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">{wallet.name}</h3>
-                      {wallet.cardType && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{wallet.cardType}</p>
-                      )}
-                    </div>
+        {/* Grid de Tarjetas/Cuentas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {allWallets.map((wallet) => (
+            <div key={wallet.id} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg text-blue-600 dark:text-blue-400">
+                    {getWalletIcon(wallet.type)}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{wallet.name}</h3>
+                    {wallet.cardType && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{wallet.cardType}</p>
+                    )}
                   </div>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {formatCurrency(wallet.balance)}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
-                    {wallet.type === 'credito' ? 'Tarjeta de Crédito' : wallet.type}
-                  </p>
-                </div>
               </div>
-            ))}
-          </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {formatCurrency(wallet.balance)}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{wallet.currency}</p>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Transacciones Recientes */}
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Transacciones Recientes</h2>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Transacciones Recientes</h2>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
               {recentTransactions.map((transaction) => (
-                <div key={transaction.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-300">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-full ${
-                        transaction.type === 'ingreso' 
-                          ? 'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400'
-                          : 'bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400'
-                      }`}>
-                        {transaction.type === 'ingreso' ? (
-                          <TrendingUp className="w-4 h-4" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{transaction.description}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{transaction.wallet} • {transaction.date}</p>
-                      </div>
-                    </div>
-                    <div className={`text-right ${
+                <div key={transaction.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg transition-colors duration-300">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${
                       transaction.type === 'ingreso' 
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-red-600 dark:text-red-400'
+                        ? 'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400'
+                        : 'bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400'
                     }`}>
-                      <p className="font-semibold">
-                        {transaction.type === 'ingreso' ? '+' : ''}{formatCurrency(transaction.amount)}
-                      </p>
+                      {transaction.type === 'ingreso' ? (
+                        <TrendingUp className="w-5 h-5" />
+                      ) : (
+                        <TrendingDown className="w-5 h-5" />
+                      )}
                     </div>
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">{transaction.description}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{transaction.wallet} • {transaction.date}</p>
+                    </div>
+                  </div>
+                  <div className={`text-right ${
+                    transaction.type === 'ingreso' 
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-red-600 dark:text-red-400'
+                  }`}>
+                    <p className="font-semibold">
+                      {transaction.type === 'ingreso' ? '+' : ''}{formatCurrency(transaction.amount)}
+                    </p>
                   </div>
                 </div>
               ))}

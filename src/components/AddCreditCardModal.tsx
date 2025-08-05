@@ -12,14 +12,18 @@ interface AddCreditCardModalProps {
 }
 
 interface CreditCardData {
-  name: string;
-  type: string;
+  creditCard_id: string;
+  card_name: string;
+  card_type: string;
+  expense_amount_credit: string;
+  payment_amount: string;
+  createdAt: string;
 }
 
 const cardTypes = ['Visa', 'American Express', 'MasterCard', 'Otro'];
 
 export default function AddCreditCardModal({ isOpen, onClose, onAdd }: AddCreditCardModalProps) {
-  const [formData, setFormData] = useState<CreditCardData>({
+  const [formData, setFormData] = useState({
     name: '',
     type: cardTypes[0]
   });
@@ -44,20 +48,44 @@ export default function AddCreditCardModal({ isOpen, onClose, onAdd }: AddCredit
     setIsLoading(true);
 
     try {
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast.success('¡Tarjeta de crédito agregada exitosamente!');
-      
-      onAdd(formData);
-      setFormData({
-        name: '',
-        type: cardTypes[0]
+      // Llamada real a la API
+      const response = await fetch('/api/credit-cards', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          card_name: formData.name.trim(),
+          card_type: formData.type
+        }),
       });
-      onClose();
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success('¡Tarjeta de crédito agregada exitosamente!');
+        
+        // Pasar los datos de la tarjeta creada al componente padre
+        onAdd({
+          creditCard_id: result.data.creditCard_id,
+          card_name: result.data.card_name,
+          card_type: result.data.card_type,
+          expense_amount_credit: result.data.expense_amount_credit,
+          payment_amount: result.data.payment_amount,
+          createdAt: result.data.createdAt
+        });
+        
+        setFormData({
+          name: '',
+          type: cardTypes[0]
+        });
+        onClose();
+      } else {
+        toast.error(result.message || 'Error al agregar la tarjeta');
+      }
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Error al agregar la tarjeta. Intenta nuevamente.');
+      toast.error('Error de conexión. Intenta nuevamente.');
     } finally {
       setIsLoading(false);
     }
