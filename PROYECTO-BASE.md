@@ -91,11 +91,29 @@ interface IExpense {
   expense_id: string;                                    // ID único del gasto
   user_id: string;                                      // Clerk user ID
   expense_name: string;                                 // Nombre del gasto
+  expense_amount: number;                               // Monto del gasto
   expense_category: 'Comida' | 'Super Mercado' | 'Delivery';  // Categoría
   payment_method: 'Debito' | 'Credito' | 'Efectivo';   // Método de pago
   createdAt: Date;                                      // Timestamp automático
   updatedAt: Date;                                      // Timestamp automático
 }
+```
+
+#### **🆕 Income Model (income.models.ts)**
+```typescript
+interface IIncome {
+  income_id: string;        // ID único del ingreso
+  user_id: string;          // Clerk user ID
+  income_type: string;      // Tipo/descripción del ingreso
+  income_amount: number;    // Monto del ingreso
+  createdAt: Date;          // Timestamp automático
+  updatedAt: Date;          // Timestamp automático
+}
+```
+
+#### **🆕 Transaction Union Type**
+```typescript
+type Transaction = (Expense & { type: 'expense' }) | (Income & { type: 'income' });
 ```
 
 ### **Características de los Modelos**
@@ -226,6 +244,52 @@ export const config = {
 - **Conexión optimizada a MongoDB**
 - **Modal "Agregar Gasto" funcional**
 - **API de prueba para verificar BD**
+- **🆕 Modelo Income implementado para ingresos**
+- **🆕 Tabla de transacciones unificada (ExpensesTable.tsx)**
+- **🆕 Integración completa de gastos e ingresos en una sola vista**
+- **🆕 API /api/incomes para gestión de ingresos**
+- **🆕 Validaciones de formulario en AddExpenseModal**
+
+### **🆕 NUEVAS FUNCIONALIDADES IMPLEMENTADAS (Enero 2025)**
+
+#### **📊 Sistema de Transacciones Unificado**
+- **ExpensesTable.tsx**: Tabla que muestra gastos e ingresos juntos
+- **Diferenciación visual**: Gastos en rojo, ingresos en verde
+- **Búsqueda unificada**: Busca en todos los campos de ambos tipos
+- **Paginación inteligente**: Maneja la lista combinada
+- **Acciones CRUD**: Editar/eliminar para ambos tipos
+
+#### **💰 Gestión de Ingresos**
+- **Modelo Income**: Estructura para ingresos con `income_type` y `income_amount`
+- **API /api/incomes**: Endpoints GET, POST, PUT, DELETE
+- **Integración en tabla**: Los ingresos se muestran junto a gastos
+- **Validaciones**: Campos requeridos y tipos correctos
+
+#### **🔍 Funcionalidades de la Tabla Unificada**
+- **Columnas dinámicas**:
+  - Movimiento: `expense_name` para gastos, `income_type` para ingresos
+  - Monto: Rojo para gastos, verde para ingresos
+  - Categoría: Con icono para gastos, "-" para ingresos
+  - Método de Pago: Con icono para gastos, "-" para ingresos
+  - Fecha: `createdAt` para ambos
+  - Acciones: Editar/Eliminar funcionales
+
+#### **✅ Validaciones de Formulario (AddExpenseModal)**
+- **Nombre del gasto**: Máximo 40 caracteres
+  - Advertencia visual con borde rojo
+  - Contador de caracteres en tiempo real
+  - Botón deshabilitado si excede límite
+- **Monto del gasto**: Máximo 10 números
+  - Validación inteligente que cuenta solo números
+  - Advertencia visual y contador
+  - Botón deshabilitado si excede límite
+
+#### **🔧 Mejoras Técnicas**
+- **Tipos TypeScript**: Union type `Transaction` para gastos e ingresos
+- **Fetch concurrente**: `fetchAllData()` obtiene ambos tipos simultáneamente
+- **Estado unificado**: `transactions` combina gastos e ingresos
+- **Renderizado condicional**: Lógica para mostrar datos según tipo
+- **Manejo de errores**: Validaciones robustas en frontend y backend
 
 🔄 **Listo para Expansión:**
 - API routes para operaciones CRUD completas
@@ -233,6 +297,11 @@ export const config = {
 - Dashboards con datos reales de MongoDB
 - Reportes y análisis financieros
 - Funcionalidades avanzadas de categorización
+- **🆕 Modal para agregar ingresos**
+- **🆕 Edición inline de transacciones**
+- **🆕 Filtros avanzados por tipo, categoría, fecha**
+- **🆕 Exportación de datos**
+- **🆕 Gráficos y estadísticas**
 
 ## 🚨 REGLAS CRÍTICAS DE DESARROLLO
 
@@ -273,6 +342,6 @@ export const config = {
 
 ---
 
-**Última actualización**: Enero 2025 - MongoDB implementado
-**Versión del proyecto**: 0.2.0
-**Estado**: Base funcional completa con BD ✅
+**Última actualización**: Agosto 2025 - Sistema de transacciones unificado implementado
+**Versión del proyecto**: 0.3.0
+**Estado**: Sistema completo de gastos e ingresos con validaciones ✅

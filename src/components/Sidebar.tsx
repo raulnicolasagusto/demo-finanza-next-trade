@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
-import { Menu, Home, ArrowLeftRight } from 'lucide-react';
+import { Menu, Home, ArrowLeftRight, Settings, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface SidebarProps {
@@ -14,6 +14,7 @@ interface SidebarProps {
 
 export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
   const pathname = usePathname();
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const navigation = [
     {
@@ -27,6 +28,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       href: '/transacciones',
       icon: ArrowLeftRight,
       current: pathname === '/transacciones'
+    },
+    {
+      name: 'Configuración',
+      href: '/configuracion',
+      icon: Settings,
+      current: pathname === '/configuracion'
     }
   ];
 
@@ -48,7 +55,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       </div>
 
       {/* Logo */}
-      <div className="flex items-center justify-center p-4">
+      <div className="flex items-center justify-center p-2">
         <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
           <span className="text-white font-bold text-sm">P</span>
         </div>
@@ -65,8 +72,8 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-2 mt-8">
-        <ul className={`${isCollapsed ? 'space-y-6' : 'grid grid-cols-2 gap-4'}`}>
+      <nav className="flex-1 px-2 mt-2">
+        <ul className={`${isCollapsed ? 'space-y-2' : 'grid grid-cols-2 gap-2'}`}>
           {navigation.map((item) => {
             const Icon = item.icon;
             return (
@@ -105,23 +112,48 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
         </ul>
       </nav>
 
-      {/* Bottom section for premium card */}
+      {/* Bottom section for dark mode toggle */}
       <div className="p-4 mt-auto">
         {!isCollapsed && (
           <motion.div 
-            className="bg-indigo-500 rounded-xl p-4 text-white"
+            className="bg-gray-50 rounded-xl p-4 border border-gray-200"
             initial={false}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
           >
-            <h3 className="font-semibold mb-1">Get a premium card</h3>
-            <p className="text-xs text-indigo-100 mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit</p>
-            <button className="bg-white text-indigo-600 text-sm font-medium px-4 py-2 rounded-lg">
-              Get Now
-            </button>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Moon className="w-4 h-4 text-gray-600" />
+                </div>
+                <span className="text-sm font-medium text-gray-700">Dark Mood</span>
+              </div>
+              
+              {/* Toggle Switch */}
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                  isDarkMode ? 'bg-indigo-600' : 'bg-gray-300'
+                }`}
+              >
+                <motion.span
+                  className="inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform duration-300 ease-in-out"
+                  animate={{
+                    x: isDarkMode ? 24 : 4
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 500,
+                    damping: 30
+                  }}
+                />
+              </button>
+            </div>
           </motion.div>
         )}
       </div>
     </motion.div>
   );
 }
+
+    
