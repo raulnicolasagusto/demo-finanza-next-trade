@@ -41,7 +41,7 @@ export default function DashboardLayout({ children, onExpenseUpdate }: Dashboard
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       {/* Sidebar */}
       <Sidebar 
         key="persistent-sidebar" 
@@ -52,16 +52,20 @@ export default function DashboardLayout({ children, onExpenseUpdate }: Dashboard
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="bg-white shadow-sm border-b px-6 py-4">
+        <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4 transition-colors duration-300">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-gray-900">{getPageTitle()}</h1>
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">{getPageTitle()}</h1>
             <div className="flex items-center space-x-4">
               <SharedExpenseNotifications onExpenseUpdate={onExpenseUpdate} />
-              <span className="text-sm text-gray-600">Bienvenido</span>
+              <span className="text-sm text-gray-600 dark:text-gray-300">Bienvenido</span>
               <UserButton 
                 appearance={{
                   elements: {
-                    avatarBox: 'w-8 h-8'
+                    avatarBox: 'w-8 h-8',
+                    userButtonAvatarBox: 'w-8 h-8',
+                    userButtonTrigger: 'focus:shadow-none',
+                    userButtonBox: 'flex-row-reverse',
+                    userButtonOuterIdentifier: 'text-gray-900 dark:text-white font-medium text-sm'
                   }
                 }}
                 afterSignOutUrl="/sign-in"
@@ -74,7 +78,7 @@ export default function DashboardLayout({ children, onExpenseUpdate }: Dashboard
         </header>
         
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
           {children}
         </main>
       </div>

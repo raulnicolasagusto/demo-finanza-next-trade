@@ -143,7 +143,7 @@ export default function AddIncomeModal({ isOpen, onClose, onAdd }: AddIncomeModa
           transition={{ duration: 0.2 }}
         >
           <motion.div 
-            className="bg-white rounded-lg p-6 w-full max-w-md mx-4"
+            className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 transition-colors duration-300"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
@@ -151,10 +151,10 @@ export default function AddIncomeModal({ isOpen, onClose, onAdd }: AddIncomeModa
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Agregar nuevo ingreso</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Agregar nuevo ingreso</h2>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100 transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -164,34 +164,34 @@ export default function AddIncomeModal({ isOpen, onClose, onAdd }: AddIncomeModa
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Monto del ingreso */}
               <div>
-                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Monto del ingreso
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 font-medium">$</span>
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 dark:text-gray-300 font-medium">$</span>
                   <input
                     type="text"
                     id="amount"
                     value={formData.amount}
                     onChange={handleAmountChange}
-                    className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                    className="w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-gray-700 transition-colors duration-300"
                     placeholder="0.00"
                     required
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Usa punto para separar decimales (ej: 123.45)</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Usa punto para separar decimales (ej: 123.45)</p>
               </div>
 
               {/* Tipo de ingreso */}
               <div>
-                <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Tipo de ingreso
                 </label>
                 <select
                   id="type"
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white bg-white dark:bg-gray-700 transition-colors duration-300"
                 >
                   {incomeTypes.map((type) => (
                     <option key={type} value={type}>
@@ -203,20 +203,20 @@ export default function AddIncomeModal({ isOpen, onClose, onAdd }: AddIncomeModa
 
               {/* Observaciones */}
               <div>
-                <label htmlFor="note" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="note" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Observaciones
-                  <span className="text-xs text-gray-500 ml-2">({formData.note.length}/150)</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">({formData.note.length}/150)</span>
                 </label>
                 <textarea
                   id="note"
                   value={formData.note}
                   onChange={handleNoteChange}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500 resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-gray-700 resize-none transition-colors duration-300"
                   placeholder="Ingresa observaciones sobre este ingreso..."
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">Máximo 150 caracteres</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Máximo 150 caracteres</p>
               </div>
 
               {/* Buttons */}
@@ -224,7 +224,7 @@ export default function AddIncomeModal({ isOpen, onClose, onAdd }: AddIncomeModa
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 transition-colors duration-300"
                 >
                   Cancelar
                 </button>

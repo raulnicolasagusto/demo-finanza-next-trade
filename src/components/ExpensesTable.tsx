@@ -291,10 +291,10 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
 
   if (loading) {
     return (
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2 text-gray-600">Cargando transacciones...</span>
+          <span className="ml-2 text-gray-600 dark:text-gray-300">Cargando transacciones...</span>
         </div>
       </div>
     );
@@ -302,7 +302,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
 
   if (error) {
     return (
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <p className="text-red-600 mb-2">❌ {error}</p>
@@ -319,16 +319,16 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
   }
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300">
       {/* Search and Controls */}
       <div className="mb-6">
         <div className="flex items-center gap-4 justify-end">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600 whitespace-nowrap">Mostrar:</span>
+            <span className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">Mostrar:</span>
             <select
               value={itemsPerPage}
               onChange={(e) => setItemsPerPage(e.target.value as ItemsPerPageOption)}
-              className="border border-gray-300 rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
+              className="border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors duration-300"
             >
               {ITEMS_PER_PAGE_OPTIONS.map((option) => (
                 <option key={option} value={option}>
@@ -339,13 +339,13 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
           </div>
           
           <div className="relative">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-3 w-3" />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-3 w-3" />
             <input
               type="text"
               placeholder="Buscar..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-7 pr-3 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-400 w-40"
+              className="pl-7 pr-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 w-40 transition-colors duration-300"
             />
           </div>
         </div>
@@ -354,7 +354,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
       {/* Table */}
       {filteredTransactions.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">
+          <p className="text-gray-500 dark:text-gray-400">
             {searchTerm ? 'No se encontraron transacciones que coincidan con tu búsqueda' : 'No hay transacciones registradas aún'}
           </p>
           {searchTerm && (
@@ -371,20 +371,20 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
           <div className="overflow-x-auto min-h-[400px]">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Movimiento</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Monto</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Categoría</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Método de Pago</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Fecha</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Acciones</th>
+                <tr className="border-b border-gray-200 dark:border-gray-600">
+                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Movimiento</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Monto</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Categoría</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Método de Pago</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Fecha</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedTransactions.map((transaction) => (
-                  <tr key={transaction.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  <tr key={transaction.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                     <td className="py-4 px-4">
-                      <div className="font-medium text-gray-900">{transaction.name}</div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{transaction.name}</div>
                     </td>
                     <td className="py-4 px-4">
                       <div className={`font-semibold ${
@@ -397,24 +397,24 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                       {transaction.type === 'expense' ? (
                         <div className="flex items-center space-x-2">
                           {getCategoryIcon(transaction.category!)}
-                          <span className="text-gray-700">{transaction.category}</span>
+                          <span className="text-gray-700 dark:text-gray-300">{transaction.category}</span>
                         </div>
                       ) : (
-                        <span className="text-gray-500">-</span>
+                        <span className="text-gray-500 dark:text-gray-400">-</span>
                       )}
                     </td>
                     <td className="py-4 px-4">
                       {transaction.type === 'expense' ? (
                         <div className="flex items-center space-x-2">
                           {getPaymentIcon(transaction.paymentMethod!)}
-                          <span className="text-gray-700">{transaction.paymentMethod}</span>
+                          <span className="text-gray-700 dark:text-gray-300">{transaction.paymentMethod}</span>
                         </div>
                       ) : (
-                        <span className="text-gray-500">-</span>
+                        <span className="text-gray-500 dark:text-gray-400">-</span>
                       )}
                     </td>
                     <td className="py-4 px-4">
-                      <span className="text-gray-600 text-sm">{formatDate(transaction.createdAt)}</span>
+                      <span className="text-gray-600 dark:text-gray-400 text-sm">{formatDate(transaction.createdAt)}</span>
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center space-x-2">
@@ -424,7 +424,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                             ? handleEditExpense(transaction.id) 
                             : handleEditIncome(transaction.id)
                           }
-                          className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                           title={`Editar ${transaction.type === 'expense' ? 'gasto' : 'ingreso'}`}
                         >
                           <Edit className="h-4 w-4" />
@@ -436,7 +436,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                             : handleDeleteIncome(transaction.id, transaction.name)
                           }
                           disabled={deletingTransactionId === transaction.id}
-                          className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           title={`Eliminar ${transaction.type === 'expense' ? 'gasto' : 'ingreso'}`}
                         >
                           {deletingTransactionId === transaction.id ? (
@@ -456,7 +456,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
           {/* Pagination */}
           {itemsPerPage !== 'all' && totalPages > 1 && (
             <div className="flex items-center justify-between mt-6">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
                 Mostrando {((currentPage - 1) * (itemsPerPage as number)) + 1} a {Math.min(currentPage * (itemsPerPage as number), totalItems)} de {totalItems} transacciones
               </div>
               
@@ -464,7 +464,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="p-0.5 border-2 border-black rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  className="p-0.5 border-2 border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   <ChevronLeft className="h-4 w-4 text-blue-600" />
                 </button>
@@ -477,7 +477,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                       className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                         currentPage === page
                           ? 'bg-blue-600 text-white'
-                          : 'text-gray-600 hover:bg-gray-100'
+                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                       }`}
                     >
                       {page}
@@ -488,7 +488,7 @@ export default function ExpensesTable({ refreshTrigger }: ExpensesTableProps) {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="p-0.5 border-2 border-black rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  className="p-0.5 border-2 border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   <ChevronRight className="h-4 w-4 text-blue-600" />
                 </button>

@@ -165,17 +165,17 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
           transition={{ duration: 0.2 }}
           >
        <motion.div 
-            className="bg-white rounded-lg p-6 w-full max-w-md mx-4"initial={{ scale: 0.9, opacity: 0 }}
+            className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 transition-colors duration-300"initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Agregar nuevo gasto</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Agregar nuevo gasto</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100 transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
@@ -185,7 +185,7 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Nombre del gasto */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Nombre del gasto
             </label>
             <input
@@ -193,14 +193,14 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500 ${
-                !isNameValid ? 'border-red-300' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-gray-700 transition-colors duration-300 ${
+                !isNameValid ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
               }`}
               placeholder="Ingresa el nombre del gasto"
               required
             />
             {!isNameValid && (
-              <p className="text-xs text-red-500 mt-1">
+              <p className="text-xs text-red-500 dark:text-red-400 mt-1">
                 El nombre no puede exceder los 40 caracteres ({formData.name.length}/40)
               </p>
             )}
@@ -208,42 +208,42 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
 
           {/* Monto del gasto */}
           <div>
-            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Monto del gasto
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 font-medium">$</span>
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 dark:text-gray-300 font-medium">$</span>
               <input
                 type="text"
                 id="amount"
                 value={formData.amount}
                 onChange={handleAmountChange}
-                className={`w-full pl-8 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500 ${
-                  !isAmountValid ? 'border-red-300' : 'border-gray-300'
+                className={`w-full pl-8 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-gray-700 transition-colors duration-300 ${
+                  !isAmountValid ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                 }`}
                 placeholder="0.00"
                 required
               />
             </div>
             {!isAmountValid ? (
-              <p className="text-xs text-red-500 mt-1">
+              <p className="text-xs text-red-500 dark:text-red-400 mt-1">
                 El monto no puede exceder los 10 números ({getNumericLength(formData.amount)}/10)
               </p>
             ) : (
-              <p className="text-xs text-gray-500 mt-1">Usa punto para separar decimales (ej: 123.45)</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Usa punto para separar decimales (ej: 123.45)</p>
             )}
           </div>
 
           {/* Categoría */}
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Categoría
             </label>
             <select
               id="category"
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 dark:text-white bg-white dark:bg-gray-700 transition-colors duration-300"
             >
               {categories.map((category) => (
                 <option key={category} value={category}>
@@ -255,14 +255,14 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
 
           {/* Medio de pago */}
           <div>
-            <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Medio de pago
             </label>
             <select
               id="paymentMethod"
               value={formData.paymentMethod}
               onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 dark:text-white bg-white dark:bg-gray-700 transition-colors duration-300"
             >
               {paymentMethods.map((method) => (
                 <option key={method} value={method}>
@@ -281,7 +281,7 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
       onChange={(e) => setIsShared(e.target.checked)}
       className="mr-2"
     />
-    <span className="text-sm font-medium text-gray-700">
+    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
       Compartir este gasto
     </span>
   </label>
@@ -293,14 +293,14 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-    <label className="block text-sm font-medium text-gray-700 mb-2">
+    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
       Email del destinatario
     </label>
     <input
       type="email"
       value={recipientEmail}
       onChange={(e) => setRecipientEmail(e.target.value)}
-      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500 bg-white"
+      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-gray-700 transition-colors duration-300"
       placeholder="ejemplo@email.com"
       required={isShared}
     />
@@ -312,7 +312,7 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
             <button
               type="button"
               onClick={handleCancel}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 transition-colors duration-300"
             >
               Cancelar
             </button>

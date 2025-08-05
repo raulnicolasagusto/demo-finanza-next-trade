@@ -9,9 +9,9 @@ interface SummaryCardProps {
 
 export default function SummaryCard({ title, amount, trend = 'neutral', trendColor = '#4F46E5' }: SummaryCardProps) {
   return (
-    <div className="bg-white p-5 rounded-xl shadow-sm border">
+    <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm text-gray-500">{title}</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">{title}</span>
         <div className="h-8 w-16">
           {/* Placeholder para el mini gráfico */}
           <svg className="w-full h-full" viewBox="0 0 100 30">
@@ -26,7 +26,7 @@ export default function SummaryCard({ title, amount, trend = 'neutral', trendCol
           </svg>
         </div>
       </div>
-      <div className="text-2xl font-bold text-gray-900">{amount}</div>
+      <div className="text-2xl font-bold text-gray-900 dark:text-white">{amount}</div>
     </div>
   );
 }

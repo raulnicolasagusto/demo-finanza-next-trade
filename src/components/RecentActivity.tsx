@@ -47,30 +47,36 @@ export default function RecentActivity() {
   ];
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-        <button className="text-sm text-blue-600 hover:text-blue-800">View all</button>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
+        <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">View all</button>
       </div>
       
       <div className="space-y-6">
         {activities.map((activity) => (
           <div key={activity.id} className="flex items-center">
-            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-4">
+            <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mr-4 transition-colors duration-300">
               {/* Placeholder para iconos de plataformas */}
-              <span className="text-xs">{activity.platform.charAt(0)}</span>
+              <span className="text-xs font-bold text-gray-600 dark:text-gray-300">
+                {activity.platform.charAt(0)}
+              </span>
             </div>
-            
             <div className="flex-1">
-              <h3 className="text-base font-medium text-gray-900">{activity.platform}</h3>
-              <p className="text-sm text-gray-500">{activity.type}</p>
-            </div>
-            
-            <div className="text-right">
-              <p className={`text-base font-medium ${activity.isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                {activity.amount}
-              </p>
-              <p className="text-xs text-gray-500">{activity.time}</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="block text-sm font-medium text-gray-900 dark:text-white">{activity.platform}</span>
+                  <span className="block text-xs text-gray-500 dark:text-gray-400">{activity.type}</span>
+                </div>
+                <div className="text-right">
+                  <span className={`block text-sm font-semibold ${
+                    activity.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                  }`}>
+                    {activity.amount}
+                  </span>
+                  <span className="block text-xs text-gray-500 dark:text-gray-400">{activity.time}</span>
+                </div>
+              </div>
             </div>
           </div>
         ))}
