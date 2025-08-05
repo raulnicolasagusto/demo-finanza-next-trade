@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
-import { Menu, Home, ArrowLeftRight, Settings, Moon } from 'lucide-react';
+import { Menu, Home, ArrowLeftRight, Settings, Moon, Wallet } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -31,6 +31,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       current: pathname === '/transacciones'
     },
     {
+      name: 'Billetera',
+      href: '/billetera',
+      icon: Wallet,
+      current: pathname === '/billetera'
+    },
+    {
       name: 'Configuración',
       href: '/configuracion',
       icon: Settings,
@@ -55,22 +61,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
         </button>
       </div>
 
-      {/* Logo */}
-      <div className="flex items-center justify-center p-2">
-        <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
-          <span className="text-white font-bold text-sm">P</span>
-        </div>
-        {!isCollapsed && (
-          <motion.span 
-            className="ml-2 text-lg font-semibold text-gray-900 dark:text-white"
-            initial={false}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            Personal Capital
-          </motion.span>
-        )}
-      </div>
+     
 
       {/* Navigation */}
       <nav className="flex-1 px-2 mt-2">
