@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import DashboardLayout from '@/components/DashboardLayout';
 import AddCreditCardModal from '@/components/AddCreditCardModal';
-import { Wallet, CreditCard, Banknote, TrendingUp, TrendingDown, Plus } from 'lucide-react';
+import { Wallet, CreditCard, Banknote, TrendingUp, TrendingDown, Plus, Edit3, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface WalletCard {
@@ -205,7 +205,27 @@ export default function BilleteraPage() {
         {/* Grid de Tarjetas/Cuentas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {allWallets.map((wallet) => (
-            <div key={wallet.id} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+            <div key={wallet.id} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300 relative group">
+              {/* Botones de acción solo para tarjetas de crédito */}
+              {wallet.type === 'credito' && (
+                <div className="absolute bottom-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <button
+                    onClick={() => handleEditCreditCard(wallet.id)}
+                    className="p-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-600 dark:text-blue-400 rounded-lg transition-all duration-200 hover:scale-110 shadow-sm"
+                    title="Editar tarjeta"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteCreditCard(wallet.id)}
+                    className="p-2 bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-600 dark:text-red-400 rounded-lg transition-all duration-200 hover:scale-110 shadow-sm"
+                    title="Eliminar tarjeta"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+              
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg text-blue-600 dark:text-blue-400">
@@ -280,3 +300,40 @@ export default function BilleteraPage() {
     </DashboardLayout>
   );
 }
+
+
+// Función para eliminar tarjeta de crédito
+const handleDeleteCreditCard = async (creditCardId: string) => {
+  if (!confirm('¿Estás seguro de que quieres eliminar esta tarjeta de crédito?')) {
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/credit-cards', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ creditCard_id: creditCardId }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      setCreditCards(prev => prev.filter(card => card.creditCard_id !== creditCardId));
+      toast.success('Tarjeta eliminada exitosamente');
+    } else {
+      toast.error('Error al eliminar la tarjeta');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    toast.error('Error de conexión al eliminar tarjeta');
+  }
+};
+
+// Función para editar tarjeta de crédito (placeholder)
+const handleEditCreditCard = (creditCardId: string) => {
+  // Por ahora solo mostramos un mensaje, se puede implementar un modal de edición después
+  toast.success('Función de edición en desarrollo');
+  console.log('Editar tarjeta:', creditCardId);
+};
