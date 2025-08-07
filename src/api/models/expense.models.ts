@@ -7,6 +7,7 @@ export interface IExpense extends Document {
   expense_amount: string;
   expense_category: 'Comida' | 'Super Mercado' | 'Delivery';
   payment_method: 'Debito' | 'Credito' | 'Efectivo';
+  installment_quantity?: number; // Nuevo campo para cantidad de cuotas
   // Nuevos campos para gastos compartidos
   is_shared: boolean;
   shared_with_user_id?: string; // ID del usuario con quien se comparte
@@ -46,6 +47,11 @@ const ExpenseSchema: Schema = new Schema(
       type: String,
       required: true,
       enum: ['Debito', 'Credito', 'Efectivo'],
+    },
+    installment_quantity: {
+      type: Number,
+      min: 1,
+      max: 48,
     },
     // Nuevos campos para gastos compartidos
     is_shared: {

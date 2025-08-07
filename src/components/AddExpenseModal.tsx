@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -18,12 +20,22 @@ interface ExpenseData {
   paymentMethod: string;
 }
 
+interface CreditCardData {
+  creditCard_id: string;
+  card_name: string;
+  card_type: string;
+  expense_amount_credit: string;
+  payment_amount: string;
+  createdAt: string;
+}
+
 const categories = ['Comida', 'Super Mercado', 'Delivery'];
 const paymentMethods = ['Debito', 'Credito', 'Efectivo'];
 
 
 
 export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps) {
+  const { isLoaded, userId } = useAuth();
   const [formData, setFormData] = useState<ExpenseData>({
     name: '',
     amount: '',
@@ -31,9 +43,55 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
     paymentMethod: paymentMethods[0]
   });
   const [isLoading, setIsLoading] = useState(false);
+  
   // Estados para el formulario de compartir gasto
   const [isShared, setIsShared] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState('');
+  
+  // Estados para tarjetas de crédito
+  const [creditCards, setCreditCards] = useState<CreditCardData[]>([]);
+  const [selectedCreditCard, setSelectedCreditCard] = useState('');
+  const [installments, setInstallments] = useState('1');
+  const [loadingCreditCards, setLoadingCreditCards] = useState(false);
+
+  // Función para obtener tarjetas de crédito
+  const fetchCreditCards = async () => {
+    if (!userId) return;
+    
+    try {
+      setLoadingCreditCards(true);
+      const response = await fetch('/api/credit-cards');
+      const result = await response.json();
+      
+      if (result.success) {
+        setCreditCards(result.data);
+      } else {
+        console.error('Error al obtener tarjetas:', result.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoadingCreditCards(false);
+    }
+  };
+
+  // Cargar tarjetas cuando se abre el modal y el usuario está autenticado
+  useEffect(() => {
+    if (isOpen && isLoaded && userId) {
+      fetchCreditCards();
+    }
+  }, [isOpen, isLoaded, userId]);
+
+  // Resetear campos de crédito cuando cambia el método de pago
+  useEffect(() => {
+    if (formData.paymentMethod !== 'Credito') {
+      setSelectedCreditCard('');
+      setInstallments('1');
+    }
+  }, [formData.paymentMethod]);
+
+  // Generar opciones de cuotas (1 a 48)
+  const installmentOptions = Array.from({ length: 48 }, (_, i) => i + 1);
 
   // Validación para el nombre del gasto
   const isNameValid = formData.name.length <= 40;
@@ -90,21 +148,31 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
     // Decidir endpoint y datos según si es compartido o no
     const endpoint = isShared ? '/api/shared-expenses/invite' : '/api/expenses';
     
+    // DEBUG: Agregar logs temporales
+    console.log('Payment Method:', formData.paymentMethod);
+    console.log('Installments value:', installments);
+    console.log('Installments parsed:', parseInt(installments));
+    
     const requestBody = isShared ? {
       recipient_email: recipientEmail,
       expense_data: {
         expense_name: formData.name,
         expense_amount: formData.amount,
         expense_category: formData.category,
-        payment_method: formData.paymentMethod
+        payment_method: formData.paymentMethod,
+        ...(formData.paymentMethod === 'Credito' && installments && { installment_quantity: parseInt(installments) })
       }
     } : {
       expense_name: formData.name,
       expense_amount: formData.amount,
       expense_category: formData.category,
       payment_method: formData.paymentMethod,
-      is_shared: false
+      is_shared: false,
+      ...(formData.paymentMethod === 'Credito' && installments && { installment_quantity: parseInt(installments) })
     };
+
+    // DEBUG: Ver el body completo
+    console.log('Request body:', JSON.stringify(requestBody, null, 2));
 
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -115,6 +183,7 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
     });
 
     const result = await response.json();
+    console.log('API Response:', result); // DEBUG
 
     if (result.success) {
       const successMessage = isShared 
@@ -131,6 +200,8 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
       });
       setIsShared(false);
       setRecipientEmail('');
+      setSelectedCreditCard('');
+      setInstallments('1');
       onClose();
     } else {
       toast.error(result.message || 'Error al procesar el gasto');
@@ -143,17 +214,21 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
   }
 };
 
-  const handleCancel = () => {
-    setFormData({
-      name: '',
-      amount: '',
-      category: categories[0],
-      paymentMethod: paymentMethods[0]
-    });
-    onClose();
-  };
+const handleCancel = () => {
+  setFormData({
+    name: '',
+    amount: '',
+    category: categories[0],
+    paymentMethod: paymentMethods[0]
+  });
+  setIsShared(false);
+  setRecipientEmail('');
+  setSelectedCreditCard('');
+  setInstallments('1');
+  onClose();
+};
 
-  if (!isOpen) return null;
+if (!isOpen) return null;
 
   return (
     <AnimatePresence>
@@ -264,13 +339,88 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
               onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 dark:text-white bg-white dark:bg-gray-700 transition-colors duration-300"
             >
-              {paymentMethods.map((method) => (
-                <option key={method} value={method}>
-                  {method}
-                </option>
-              ))}
+              {paymentMethods.map((method) => {
+                // Si es 'Credito' y no hay tarjetas, no mostrar la opción
+                if (method === 'Credito' && creditCards.length === 0) {
+                  return null;
+                }
+                return (
+                  <option key={method} value={method}>
+                    {method}
+                  </option>
+                );
+              })}
             </select>
+            
+            {/* Mensaje cuando no hay tarjetas de crédito */}
+            {creditCards.length === 0 && !loadingCreditCards && (
+              <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  No hay ninguna tarjeta de crédito.{' '}
+                  <Link 
+                    href="/billetera" 
+                    className="font-medium underline hover:text-red-800 dark:hover:text-red-300 transition-colors"
+                    onClick={onClose}
+                  >
+                    Carga la primera haciendo click en este enlace
+                  </Link>
+                </p>
+              </div>
+            )}
           </div>
+
+          {/* Campos adicionales para tarjeta de crédito */}
+          <AnimatePresence>
+            {formData.paymentMethod === 'Credito' && creditCards.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-4"
+              >
+                {/* Seleccionar tarjeta de crédito */}
+                <div>
+                  <label htmlFor="creditCard" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Elige la tarjeta de crédito
+                  </label>
+                  <select
+                    id="creditCard"
+                    value={selectedCreditCard}
+                    onChange={(e) => setSelectedCreditCard(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 dark:text-white bg-white dark:bg-gray-700 transition-colors duration-300"
+                    required={formData.paymentMethod === 'Credito'}
+                  >
+                    <option value="">Selecciona una tarjeta</option>
+                    {creditCards.map((card) => (
+                      <option key={card.creditCard_id} value={card.creditCard_id}>
+                        {card.card_name} ({card.card_type})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Seleccionar cantidad de cuotas */}
+                <div>
+                  <label htmlFor="installments" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Selecciona la cantidad de cuotas
+                  </label>
+                  <select
+                    id="installments"
+                    value={installments}
+                    onChange={(e) => setInstallments(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 dark:text-white bg-white dark:bg-gray-700 transition-colors duration-300"
+                  >
+                    {installmentOptions.map((num) => (
+                      <option key={num} value={num}>
+                        {num} {num === 1 ? 'cuota' : 'cuotas'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Compartir este gasto */}
 <div className="mb-4">

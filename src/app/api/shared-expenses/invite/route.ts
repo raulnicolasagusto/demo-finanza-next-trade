@@ -49,9 +49,9 @@ export async function POST(request: NextRequest) {
       expense_amount: parseFloat(expense_data.expense_amount),
       expense_category: expense_data.expense_category,
       payment_method: expense_data.payment_method,
-      is_shared: true
+      is_shared: true,
+      ...(expense_data.installment_quantity && { installment_quantity: expense_data.installment_quantity })
     });
-
     await senderExpense.save();
 
     // 2. Crear la invitación para el destinatario
