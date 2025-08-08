@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Obtener datos del cuerpo de la petición
     const body = await request.json();
-    const { expense_name, expense_amount, expense_category, payment_method, installment_quantity } = body;
+    const { expense_name, expense_amount, expense_category, payment_method, installment_quantity, creditCard_id } = body;
 
     // Validar campos requeridos
     if (!expense_name || !expense_amount || !expense_category || !payment_method) {
@@ -66,7 +66,8 @@ export async function POST(request: NextRequest) {
       expense_amount: expense_amount.trim(),
       expense_category,
       payment_method,
-      ...(installment_quantity && { installment_quantity })
+      ...(installment_quantity && { installment_quantity }),
+      ...(creditCard_id && { creditCard_id })
     });
 
     // Guardar en la base de datos
@@ -82,6 +83,7 @@ export async function POST(request: NextRequest) {
         expense_category: newExpense.expense_category,
         payment_method: newExpense.payment_method,
         installment_quantity: newExpense.installment_quantity,
+        creditCard_id: newExpense.creditCard_id,
         createdAt: newExpense.createdAt
       }
     });

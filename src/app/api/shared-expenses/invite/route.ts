@@ -50,7 +50,8 @@ export async function POST(request: NextRequest) {
       expense_category: expense_data.expense_category,
       payment_method: expense_data.payment_method,
       is_shared: true,
-      ...(expense_data.installment_quantity && { installment_quantity: expense_data.installment_quantity })
+      ...(expense_data.installment_quantity && { installment_quantity: expense_data.installment_quantity }),
+      ...(expense_data.creditCard_id && { creditCard_id: expense_data.creditCard_id })
     });
     await senderExpense.save();
 

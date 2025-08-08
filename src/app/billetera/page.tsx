@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import DashboardLayout from '@/components/DashboardLayout';
 import AddCreditCardModal from '@/components/AddCreditCardModal';
+import CreditCardExpensesModal from '@/components/CreditCardExpensesModal';
 import { Wallet, CreditCard, Banknote, TrendingUp, TrendingDown, Plus, Edit3, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -37,8 +38,11 @@ interface CreditCardData {
 export default function BilleteraPage() {
   const { isLoaded, userId } = useAuth();
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
+  const [isExpensesModalOpen, setIsExpensesModalOpen] = useState(false);
+  const [selectedCreditCard, setSelectedCreditCard] = useState<{ id: string; name: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [creditCards, setCreditCards] = useState<CreditCardData[]>([]);
+  const [creditCardExpenses, setCreditCardExpenses] = useState<Map<string, number>>(new Map());
   
   // Wallets estáticos (efectivo, débito, banco)
   const [staticWallets] = useState<WalletCard[]>([
@@ -92,6 +96,36 @@ export default function BilleteraPage() {
     }
   ];
 
+  // Función para abrir el modal de gastos de tarjeta (DENTRO del componente)
+  const handleCreditCardClick = (creditCardId: string, creditCardName: string) => {
+    setSelectedCreditCard({ id: creditCardId, name: creditCardName });
+    setIsExpensesModalOpen(true);
+  };
+
+  // Función para cerrar el modal de gastos (DENTRO del componente)
+  const handleCloseExpensesModal = () => {
+    setIsExpensesModalOpen(false);
+    setSelectedCreditCard(null);
+  };
+
+  // Nueva función para obtener gastos por tarjeta de crédito
+  const fetchCreditCardExpenses = async (creditCardId: string): Promise<number> => {
+    try {
+      const response = await fetch(`/api/expenses/by-credit-card/${creditCardId}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        return result.data.totalExpenses;
+      } else {
+        console.error('Error al obtener gastos de tarjeta:', result.message);
+        return 0;
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      return 0;
+    }
+  };
+
   // Función para obtener tarjetas de crédito desde la API
   const fetchCreditCards = async () => {
     if (!userId) return;
@@ -103,6 +137,16 @@ export default function BilleteraPage() {
       
       if (result.success) {
         setCreditCards(result.data);
+        
+        // Obtener gastos para cada tarjeta
+        const expensesMap = new Map<string, number>();
+        
+        for (const card of result.data) {
+          const totalExpenses = await fetchCreditCardExpenses(card.creditCard_id);
+          expensesMap.set(card.creditCard_id, totalExpenses);
+        }
+        
+        setCreditCardExpenses(expensesMap);
       } else {
         console.error('Error al obtener tarjetas:', result.message);
         toast.error('Error al cargar las tarjetas de crédito');
@@ -123,19 +167,67 @@ export default function BilleteraPage() {
   }, [isLoaded, userId]);
 
   // Manejar nueva tarjeta agregada
-  const handleAddCreditCard = (cardData: CreditCardData) => {
+  const handleAddCreditCard = async (cardData: CreditCardData) => {
     setCreditCards(prev => [...prev, cardData]);
+    
+    // Obtener gastos para la nueva tarjeta
+    const totalExpenses = await fetchCreditCardExpenses(cardData.creditCard_id);
+    setCreditCardExpenses(prev => new Map(prev.set(cardData.creditCard_id, totalExpenses)));
   };
 
-  // Convertir tarjetas de crédito a formato WalletCard para mostrar
-  const creditCardWallets: WalletCard[] = creditCards.map(card => ({
-    id: card.creditCard_id,
-    name: card.card_name,
-    balance: parseFloat(card.payment_amount) - parseFloat(card.expense_amount_credit),
-    type: 'credito' as const,
-    currency: 'ARS',
-    cardType: card.card_type
-  }));
+  // Función para eliminar tarjeta de crédito
+  const handleDeleteCreditCard = async (creditCardId: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta tarjeta de crédito?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/credit-cards', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ creditCard_id: creditCardId }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setCreditCards(prev => prev.filter(card => card.creditCard_id !== creditCardId));
+        setCreditCardExpenses(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(creditCardId);
+          return newMap;
+        });
+        toast.success('Tarjeta eliminada exitosamente');
+      } else {
+        toast.error('Error al eliminar la tarjeta');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error de conexión al eliminar tarjeta');
+    }
+  };
+
+  // Función para editar tarjeta de crédito (placeholder)
+  const handleEditCreditCard = (creditCardId: string) => {
+    // Por ahora solo mostramos un mensaje, se puede implementar un modal de edición después
+    toast.success('Función de edición en desarrollo');
+    console.log('Editar tarjeta:', creditCardId);
+  };
+
+  // Convertir tarjetas de crédito a formato WalletCard con balance real
+  const creditCardWallets: WalletCard[] = creditCards.map(card => {
+    const realExpenses = creditCardExpenses.get(card.creditCard_id) || 0;
+    return {
+      id: card.creditCard_id,
+      name: card.card_name,
+      balance: parseFloat(card.payment_amount) - realExpenses, // Usar gastos reales
+      type: 'credito' as const,
+      currency: 'ARS',
+      cardType: card.card_type
+    };
+  });
 
   // Combinar todas las wallets
   const allWallets = [...staticWallets, ...creditCardWallets];
@@ -205,19 +297,35 @@ export default function BilleteraPage() {
         {/* Grid de Tarjetas/Cuentas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {allWallets.map((wallet) => (
-            <div key={wallet.id} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300 relative group">
+            <div 
+              key={wallet.id} 
+              className={`bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300 relative group ${
+                wallet.type === 'credito' ? 'cursor-pointer hover:shadow-md hover:scale-[1.02] hover:border-blue-300 dark:hover:border-blue-600' : ''
+              }`}
+              onClick={() => {
+                if (wallet.type === 'credito') {
+                  handleCreditCardClick(wallet.id, wallet.name);
+                }
+              }}
+            >
               {/* Botones de acción solo para tarjetas de crédito */}
               {wallet.type === 'credito' && (
                 <div className="absolute bottom-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   <button
-                    onClick={() => handleEditCreditCard(wallet.id)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Evitar que se abra el modal
+                      handleEditCreditCard(wallet.id);
+                    }}
                     className="p-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-600 dark:text-blue-400 rounded-lg transition-all duration-200 hover:scale-110 shadow-sm"
                     title="Editar tarjeta"
                   >
                     <Edit3 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleDeleteCreditCard(wallet.id)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Evitar que se abra el modal
+                      handleDeleteCreditCard(wallet.id);
+                    }}
                     className="p-2 bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-600 dark:text-red-400 rounded-lg transition-all duration-200 hover:scale-110 shadow-sm"
                     title="Eliminar tarjeta"
                   >
@@ -235,6 +343,9 @@ export default function BilleteraPage() {
                     <h3 className="font-semibold text-gray-900 dark:text-white">{wallet.name}</h3>
                     {wallet.cardType && (
                       <p className="text-sm text-gray-500 dark:text-gray-400">{wallet.cardType}</p>
+                    )}
+                    {wallet.type === 'credito' && (
+                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Click para ver gastos</p>
                     )}
                   </div>
                 </div>
@@ -297,43 +408,14 @@ export default function BilleteraPage() {
         onClose={() => setIsAddCardModalOpen(false)}
         onAdd={handleAddCreditCard}
       />
+
+      {/* Modal para ver gastos de tarjeta de crédito */}
+      <CreditCardExpensesModal
+        isOpen={isExpensesModalOpen}
+        onClose={handleCloseExpensesModal}
+        creditCardId={selectedCreditCard?.id || ''}
+        creditCardName={selectedCreditCard?.name || ''}
+      />
     </DashboardLayout>
   );
 }
-
-
-// Función para eliminar tarjeta de crédito
-const handleDeleteCreditCard = async (creditCardId: string) => {
-  if (!confirm('¿Estás seguro de que quieres eliminar esta tarjeta de crédito?')) {
-    return;
-  }
-
-  try {
-    const response = await fetch('/api/credit-cards', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ creditCard_id: creditCardId }),
-    });
-
-    const result = await response.json();
-
-    if (result.success) {
-      setCreditCards(prev => prev.filter(card => card.creditCard_id !== creditCardId));
-      toast.success('Tarjeta eliminada exitosamente');
-    } else {
-      toast.error('Error al eliminar la tarjeta');
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    toast.error('Error de conexión al eliminar tarjeta');
-  }
-};
-
-// Función para editar tarjeta de crédito (placeholder)
-const handleEditCreditCard = (creditCardId: string) => {
-  // Por ahora solo mostramos un mensaje, se puede implementar un modal de edición después
-  toast.success('Función de edición en desarrollo');
-  console.log('Editar tarjeta:', creditCardId);
-};

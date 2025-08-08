@@ -160,7 +160,8 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
         expense_amount: formData.amount,
         expense_category: formData.category,
         payment_method: formData.paymentMethod,
-        ...(formData.paymentMethod === 'Credito' && installments && { installment_quantity: parseInt(installments) })
+        ...(formData.paymentMethod === 'Credito' && installments && { installment_quantity: parseInt(installments) }),
+        ...(formData.paymentMethod === 'Credito' && selectedCreditCard && { creditCard_id: selectedCreditCard })
       }
     } : {
       expense_name: formData.name,
@@ -168,7 +169,8 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
       expense_category: formData.category,
       payment_method: formData.paymentMethod,
       is_shared: false,
-      ...(formData.paymentMethod === 'Credito' && installments && { installment_quantity: parseInt(installments) })
+      ...(formData.paymentMethod === 'Credito' && installments && { installment_quantity: parseInt(installments) }),
+      ...(formData.paymentMethod === 'Credito' && selectedCreditCard && { creditCard_id: selectedCreditCard })
     };
 
     // DEBUG: Ver el body completo
